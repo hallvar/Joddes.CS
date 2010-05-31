@@ -15,8 +15,6 @@ namespace System
 				throw new System.NotSupportedException ();
 			}
 		}
-		
-	
 	}
 	
 	[Hidden]

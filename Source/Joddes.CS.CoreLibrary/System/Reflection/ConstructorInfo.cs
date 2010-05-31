@@ -12,7 +12,7 @@ namespace System.Reflection
 		
 		public object Invoke (object[] parameters)
 		{
-			return Jsm.Html5.Object.create(this.constructor);
+		    return Joddes.CS.Html5.Object.create(this.constructor);
 		}
 	}
 }

@@ -1,5 +1,5 @@
 using System;
-using Jsm.Html5;
+using Joddes.CS.Html5;
 
 namespace System.Net
 {

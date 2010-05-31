@@ -186,15 +186,13 @@ namespace Joddes.CS {
 
         static void FillTypeMap (AssemblyDefinition assembly, IDictionary<string, TypeDefinition> types)
         {
-        	foreach (TypeDefinition type in assembly.MainModule.Types) {
-        		//if(type.FullName.Contains("<"))
-        		//continue;
-        		JsMetadataChecker.CheckType (type);
-        		var key = GenericsHelper.GetTypeMapKey (type);
-	        		if (types.ContainsKey (key)) {
-	        			Console.WriteLine ("Key exists in types already: {0}", key);
-				} else {
-					types.Add(key, type);
+            foreach (TypeDefinition type in assembly.MainModule.Types) {
+                var key = GenericsHelper.GetTypeMapKey (type);
+                if (types.ContainsKey (key)) {
+                    Console.WriteLine ("Key exists in types already: {0} ({1})", type.FullName, assembly.MainModule.Name);
+                } else {
+                    JsMetadataChecker.CheckType (type);
+                    types.Add(key, type);
 				}
 			}
         }

@@ -1,4 +1,4 @@
-namespace Jsm.Html5
+namespace Joddes.CS.Html5
 {
 	[Hidden, Native("window")]
 	public class Window : IWindow

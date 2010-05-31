@@ -93,8 +93,8 @@ namespace Joddes.CS {
 
         static string ReplaceSpecialChars (string name)
         {
-        	// TODO: Remove all signs of generics name
-        	return name.Replace ("`1<T>", "").Replace ("`1", "").Replace("`2", "").Replace('/', '.');
+            // TODO: Remove all signs of generics name
+            return name.Replace ("`1<T>", "").Replace ("`1", "").Replace("`2", "").Replace('/', '.');
         }
 
         private static string GetPostfixedName(string baseName, int paramCount, string separator) {

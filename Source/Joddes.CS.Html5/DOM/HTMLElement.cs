@@ -1,6 +1,4 @@
-using System;
-
-namespace Jsm.Html5 {
+namespace Joddes.CS.Html5 {
 	[Hidden]
 	public abstract class HTMLElement
 	{

@@ -1,6 +1,6 @@
 namespace System.Collections.Generic
 {
-	public interface ICollections<T> : ICollection
+	public interface ICollection<T> : ICollection, IEnumerable<T>
 	{
 		void Add(T item);
 		void Clear();

@@ -16,7 +16,7 @@ namespace System.Reflection
 
         public void SetValue (object obj, object val, object[] index)
         {
-            ((Jsm.Html5.Object)obj)[this.name] = val;
+            ((Joddes.CS.Html5.Object)obj)[this.name] = val;
         }
     }
 }

@@ -1,7 +1,7 @@
 
 using System;
 
-namespace Jsm.Html5
+namespace Joddes.CS.Html5
 {
 	[Hidden, Native("XMLHttpRequest")]
 	public class XmlHttpRequest

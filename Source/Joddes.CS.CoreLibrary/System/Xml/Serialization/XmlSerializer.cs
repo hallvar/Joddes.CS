@@ -16,18 +16,22 @@ namespace System.Xml.Serialization
 		public object Deserialize (Stream stream)
 		{
 		    var ci = type.GetConstructors ()[0];
-		    Jsm.Html5.Object obj = ci.Invoke (null) as Jsm.Html5.Object;
-		 
+		    Joddes.CS.Html5.Object obj = ci.Invoke (null) as Joddes.CS.Html5.Object;
+
+            //var xhrStream = stream as Jsm.Html5.Object;
+      //if (xhrStream["responseXML"] != null) {
+      //}
+
 			var sr = new StreamReader (stream);
 		    //Jsm.Html5.Console.Log(stream);
-			var doc = sr.ReadToEnd ();
+		    var doc = sr.ReadToEnd ();
 		    //Jsm.Html5.Console.Log (doc);
 
-            var p = new Jsm.Html5.DomParser ();
-            var xdoc = p.ParseFromString(doc, "text/xml");
-			
+            var p = new Joddes.CS.Html5.DomParser ();
+      var xdoc = p.ParseFromString (doc, "text/xml");
+		 
 			//var members = type.GetMembers ();
-			var members = Jsm.Html5.Object.keys (obj.prototype);
+		    var members = Joddes.CS.Html5.Object.keys (obj.prototype);
 			foreach (var m in members) 
 			{
 				var prop = this.type.GetProperty (m);
@@ -38,12 +42,12 @@ namespace System.Xml.Serialization
 			return obj;
 		}
 
-        private object internalDeserialize (Jsm.Html5.Element[] nodes)
+        private object internalDeserialize (Joddes.CS.Html5.Element[] nodes)
         {
             var lst = new List<object> ();
 
-            foreach (Jsm.Html5.Element n in nodes) {
-                var obj = new Jsm.Html5.Object ();
+            foreach (Joddes.CS.Html5.Element n in nodes) {
+                var obj = new Joddes.CS.Html5.Object ();
 
                 for (int i = 0; i < n.ChildNodes.Length; i++) {
                     var cn = n.ChildNodes.Item (i);

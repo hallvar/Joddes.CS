@@ -1,7 +1,6 @@
-
 using System;
 
-namespace Jsm.Html5
+namespace Joddes.CS.Html5
 {
 	[Hidden, Native("NodeList")]
 	public class NodeList

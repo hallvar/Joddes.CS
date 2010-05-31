@@ -7,8 +7,8 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{1109A4DD-41E2-4B1E-8C43-352AC57096AF}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Jsm.Html5</RootNamespace>
-    <AssemblyName>Jsm.Html5</AssemblyName>
+    <RootNamespace>Joddes.CS.Html5</RootNamespace>
+    <AssemblyName>Joddes.CS.Html5</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
