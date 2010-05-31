@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="3.5" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{194D6565-2378-421C-9FBA-C2DD661BDBE5}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Joddes.CS.CoreLibrary</RootNamespace>
+    <AssemblyName>Joddes.CS.CoreLibrary</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="HiddenAttribute.cs" />
+    <Compile Include="NativeAttribute.cs" />
+    <Compile Include="NativeInlineAttribute.cs" />
+    <Compile Include="System\Collections\Generic\Dictionary.cs" />
+    <Compile Include="System\Collections\Generic\ICollection.cs" />
+    <Compile Include="System\Collections\Generic\IDictionary.cs" />
+    <Compile Include="System\Collections\Generic\IEnumerable.cs" />
+    <Compile Include="System\Collections\Generic\IEnumerator.cs" />
+    <Compile Include="System\Collections\Generic\IList.cs" />
+    <Compile Include="System\Collections\Generic\KeyValuePair.cs" />
+    <Compile Include="System\Collections\Generic\List.cs" />
+    <Compile Include="System\Collections\ObjectModel\ReadOnlyCollection.cs" />
+    <Compile Include="System\Collections\Specialized\NameObjectCollectionBase.cs" />
+    <Compile Include="System\Collections\Specialized\NameValueCollection.cs" />
+    <Compile Include="System\Collections\ICollection.cs" />
+    <Compile Include="System\Collections\IEnumerable.cs" />
+    <Compile Include="System\Collections\IEnumerator.cs" />
+    <Compile Include="System\Collections\IList.cs" />
+    <Compile Include="System\Array.cs" />
+    <Compile Include="System\Byte.cs" />
+    <Compile Include="System\Exception.cs" />
+    <Compile Include="System\IAsyncResult.cs" />
+    <Compile Include="System\NotImplementedException.cs" />
+    <Compile Include="System\NotSupportedException.cs" />
+    <Compile Include="System\Object.cs" />
+    <Compile Include="System\String.cs" />
+    <Compile Include="System\Type.cs" />
+    <Compile Include="System\Uri.cs" />
+    <Compile Include="System\IO\DirectoryInfo.cs" />
+    <Compile Include="System\IO\FileInfo.cs" />
+    <Compile Include="System\IO\MemoryStream.cs" />
+    <Compile Include="System\IO\Stream.cs" />
+    <Compile Include="System\IO\StreamReader.cs" />
+    <Compile Include="System\Linq\Expressions\BinaryExpression.cs" />
+    <Compile Include="System\Linq\Expressions\ConstantExpression.cs" />
+    <Compile Include="System\Linq\Expressions\Expression.cs" />
+    <Compile Include="System\Linq\Expressions\ExpressionType.cs" />
+    <Compile Include="System\Linq\Expressions\LamdaExpression.cs" />
+    <Compile Include="System\Linq\Expressions\MemberExpression.cs" />
+    <Compile Include="System\Linq\Expressions\MethodCallExpression.cs" />
+    <Compile Include="System\Linq\Expressions\ParameterExpression.cs" />
+    <Compile Include="System\Linq\Expressions\UnaryExpression.cs" />
+    <Compile Include="System\Linq\Enumerable.cs" />
+    <Compile Include="System\Linq\IQueryable.cs" />
+    <Compile Include="System\Linq\IQueryProvider.cs" />
+    <Compile Include="System\Net\HttpWebRequest.cs" />
+    <Compile Include="System\Net\HttpWebResponse.cs" />
+    <Compile Include="System\Net\NetAsyncResult.cs" />
+    <Compile Include="System\Net\WebHeaderCollection.cs" />
+    <Compile Include="System\Net\WebRequest.cs" />
+    <Compile Include="System\Net\WebResponse.cs" />
+    <Compile Include="System\Reflection\ConstructorInfo.cs" />
+    <Compile Include="System\Reflection\MemberInfo.cs" />
+    <Compile Include="System\Reflection\MethodInfo.cs" />
+    <Compile Include="System\Reflection\PropertyInfo.cs" />
+    <Compile Include="System\Threading\WaitHandle.cs" />
+    <Compile Include="System\Xml\Serialization\XmlSerializer.cs" />
+    <Compile Include="System\Int32.cs" />
+    <Compile Include="System\Double.cs" />
+    <Compile Include="System\Boolean.cs" />
+    <Compile Include="System\Delegate.cs" />
+    <Compile Include="System\MulticastDelegate.cs" />
+    <Compile Include="System\Func.cs" />
+    <Compile Include="System\AsyncCallback.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <None Include="System\Linq\.DS_Store" />
+    <None Include="Stubs.cs" />
+    <None Include="System\Attribute.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Joddes.CS.Html5\Joddes.CS.Html5.csproj">
+      <Project>{1109A4DD-41E2-4B1E-8C43-352AC57096AF}</Project>
+      <Name>Joddes.CS.Html5</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Core" />
+  </ItemGroup>
+</Project>

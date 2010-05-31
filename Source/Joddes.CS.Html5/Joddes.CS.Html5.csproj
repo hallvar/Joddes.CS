@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="3.5" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{1109A4DD-41E2-4B1E-8C43-352AC57096AF}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Jsm.Html5</RootNamespace>
+    <AssemblyName>Jsm.Html5</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="console.cs" />
+    <Compile Include="WebGl\WebGLRenderingContext.cs" />
+    <Compile Include="WebGl\WebGLContextAttributes.cs" />
+    <Compile Include="CSSStyleDecleration.cs" />
+    <Compile Include="WebGl\WebGLProgram.cs" />
+    <Compile Include="WebGl\WebGLShader.cs" />
+    <Compile Include="TimeoutHandle.cs" />
+    <Compile Include="IntervalHandle.cs" />
+    <Compile Include="Date.cs" />
+    <Compile Include="XmlHttpRequest.cs" />
+    <Compile Include="XMLHttpRequestProgressEvent.cs" />
+    <Compile Include="Object.cs" />
+    <Compile Include="DOM\DOMParser.cs" />
+    <Compile Include="DOM\DOMStringMap.cs" />
+    <Compile Include="DOM\DOMTokenList.cs" />
+    <Compile Include="DOM\document.cs" />
+    <Compile Include="DOM\Element.cs" />
+    <Compile Include="DOM\HTMLCanvasElement.cs" />
+    <Compile Include="DOM\HTMLElement.cs" />
+    <Compile Include="DOM\IWindow.cs" />
+    <Compile Include="DOM\Node.cs" />
+    <Compile Include="DOM\NodeList.cs" />
+    <Compile Include="DOM\Window.cs" />
+    <Compile Include="DOM\XmlDocument.cs" />
+    <Compile Include="DOM\NamedNodeMap.cs" />
+    <Compile Include="Canvas\CanvasRenderingContext2D.cs" />
+    <Compile Include="HiddenAttribute.cs" />
+    <Compile Include="NativeAttribute.cs" />
+    <Compile Include="NativeInlineAttribute.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="WebGl\" />
+    <Folder Include="DOM\" />
+    <Folder Include="Canvas\" />
+    <Folder Include="DOM\" />
+    <Folder Include="DOM\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+</Project>
