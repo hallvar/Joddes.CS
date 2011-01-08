@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Test run for Joddes.CS</title>
+		<script>
+			var startTime= new Date().getTime();
+		</script>
+		
+		<link rel="Stylesheet" type="text/css" media="all" href="oocss/core/libraries.css"/>
+		<link rel="Stylesheet" type="text/css" media="all" href="oocss/core/template/template.css"/>
+		<link rel="Stylesheet" type="text/css" media="all" href="oocss/core/grid/grids.css"/>
+		<link rel="Stylesheet" type="text/css" media="all" href="oocss/core/content.css"/>
+		<link rel="Stylesheet" type="text/css" media="all" href="oocss/core/module/mod.css"/>
+		<link rel="Stylesheet" type="text/css" media="all" href="oocss/core/module/mod_skins.css"/>
+		<link rel="stylesheet" type="text/css" media="all" href="oocss/plugins/talk/talk.css" />
+		<link rel="stylesheet" type="text/css" media="all" href="oocss/plugins/talk/talk_skins.css" />
+		
+		<link rel="Stylesheet" type="text/css" media="all" href="css/screen.css"/>
+		
+		<link rel="shortcut icon" href="images/favico.png" type="image/png" />
+		
+		<script src="js/Joddes/Joddes.js"></script>
+		<script async src="bin/js/Joddes/CS/TestRunner/TestRunner.js"></script>
+		<script>
+			JDS.using('Joddes.CS.Tests.TranslatorTest');
+			JDS.using('Joddes.CS.Tests.LanguageTest');
+			JDS.using('Joddes.CS.CoreLibrary.Tests.System.Collections.Generic.ListTest');
+			JDS.using('Joddes.CS.CoreLibrary.Tests.System.Net.HttpWebRequestTest');
+			JDS.using('Joddes.CS.CoreLibrary.Tests.System.IO.DirectoryInfoTest');
+			JDS.using('Joddes.CS.Html5.Tests.XmlHttpRequestTest');
+			JDS.using('Joddes.CS.Html5.Tests.Canvas.CanvasRenderingContext2DTest');
+			JDS.using('Joddes.CS.Html5.Tests.WebGL.WebGLRenderingContextTest');
+			JDS.using('Joddes.CS.Html5.Tests.WebDatabase.WebDatabaseTest');
+			
+			var old = JDS.onusingsloaded;
+			JDS.onusingsloaded = function() {
+				old();
+				var testrunner = new Joddes.CS.TestRunner.TestRunner();
+				
+				testrunner.Run([new Joddes.CS.Tests.TranslatorTest(),
+								new Joddes.CS.Tests.LanguageTest(),
+								new Joddes.CS.CoreLibrary.Tests.System.Collections.Generic.ListTest(),
+								new Joddes.CS.CoreLibrary.Tests.System.Net.HttpWebRequestTest(),
+								new Joddes.CS.CoreLibrary.Tests.System.IO.DirectoryInfoTest(),
+							    new Joddes.CS.Html5.Tests.XmlHttpRequestTest(),
+							    new Joddes.CS.Html5.Tests.Canvas.CanvasRenderingContext2DTest(),
+							    new Joddes.CS.Html5.Tests.WebGL.WebGLRenderingContextTest(),
+							    new Joddes.CS.Html5.Tests.WebDatabase.WebDatabaseTest()]);
+			}
+		</script>
+	</head>
+	<body>
+		<div class="page">
+			<div class="body">
+				<div class="main">
+					<ul class="times">
+						<li>From page load to last test: <span id="timer"></span> ms</li>
+						<li>From first to last test: <span id="timer2"></span> ms</li>
+					</ul>
+					
+					<h1>Tests</h1>
+					<div id="tests"></div>
+				</div>
+			</div>
+			<div class="foot">
+				Copyright &copy; 2010 - <a href="http://hallvar.github.com/">Hallvar Helleseth</a>
+			</div>
+		</div>
+	</body>
+</html>

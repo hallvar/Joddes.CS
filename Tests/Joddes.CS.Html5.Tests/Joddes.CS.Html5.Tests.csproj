@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{E8898B70-DE50-4C8C-8217-BDD38C9C61BF}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Joddes.CS.Html5.Tests</RootNamespace>
+    <AssemblyName>Joddes.CS.Html5.Tests</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CustomCommands>
+      <CustomCommands>
+        <Command type="AfterBuild" command="/usr/bin/mono ../../../../Source/bin/Joddes.CS.Console.exe ../../Joddes.CS.Html5.Tests.csproj ../../../../Source/Joddes.CS.CoreLibrary/bin/Debug/Joddes.CS.CoreLibrary.dll" workingdir="${TargetDir}" />
+      </CustomCommands>
+    </CustomCommands>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CustomCommands>
+      <CustomCommands>
+        <Command type="AfterBuild" command="mono ../../../../Source/bin/Joddes.CS.Console.exe ../../Joddes.CS.Html5.Tests.csproj ../../../../Source/Joddes.CS.CoreLibrary/bin/Release/Joddes.CS.CoreLibrary.dll" workingdir="${TargetDir}" />
+      </CustomCommands>
+    </CustomCommands>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="XmlHttpRequestTest.cs" />
+    <Compile Include="NetAsyncResult.cs" />
+    <Compile Include="Canvas\CanvasRenderingContext2DTest.cs" />
+    <Compile Include="WebGL\WebGLRenderingContextTest.cs" />
+    <Compile Include="WebDatabase\WebDatabaseTest.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Source\Joddes.CS.Html5\Joddes.CS.Html5.csproj">
+      <Project>{1109A4DD-41E2-4B1E-8C43-352AC57096AF}</Project>
+      <Name>Joddes.CS.Html5</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Source\Joddes.CS.TestFramework\Joddes.CS.TestFramework.csproj">
+      <Project>{5B8B0D9A-0374-480A-8D11-223342209055}</Project>
+      <Name>Joddes.CS.TestFramework</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Core" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <Folder Include="Canvas\" />
+    <Folder Include="WebGL\" />
+    <Folder Include="WebDatabase\" />
+  </ItemGroup>
+</Project>

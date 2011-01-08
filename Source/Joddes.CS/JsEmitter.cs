@@ -21,7 +21,6 @@ namespace Joddes.CS
         const string CREATE_ITERATOR_NAME = "GetEnumerator";
         const string ITERATOR_HAS_NEXT_NAME = "MoveNext";
         const string ITERATOR_NEXT_NAME = "Current";
-        const string INIT_OBJECT_NAME = "initObj";
 
         protected Dictionary<string, object> _locals;
         protected Dictionary<string, object> Locals {
@@ -40,10 +39,12 @@ namespace Joddes.CS
         protected int ThisRefCountInMethods { get; set; }
         protected LinqExpressionEmitter LinqExpressionEmitter { get; set; }
 
+        public IDictionary<string, TypeDefinition> UsedTypes { get; protected set; }
         public IDictionary<string, TypeDefinition> KnownTypes { get; protected set; }
         public IDictionary<string, JsTypeInfo> KnownTypeInfos { get; protected set; }
         public JsTypeInfo TypeInfo { get; set; }
-        public Mono.Cecil.TypeReference CurrentEventType { get; set; }
+        public object CurrentEventType { get; set; }
+        public object CurrentArgumentType { get; set; }
         public StringBuilder Output { get; protected set; }
 
         HashSet<string> _knownNamespaces;
@@ -94,6 +95,7 @@ namespace Joddes.CS
         {
             KnownTypeInfos = new Dictionary<string, JsTypeInfo> ();
             KnownTypes = knownTypes;
+            UsedTypes = new Dictionary<string, TypeDefinition> ();
             
             Output = new StringBuilder ();
             Level = 0;
@@ -103,7 +105,12 @@ namespace Joddes.CS
             EnsuredNamespaces = new HashSet<string> ();
             
             foreach (var kti in knownTypeInfos) {
-                KnownTypeInfos.Add (GenericsHelper.GetScriptFullName (kti.FullName), kti);
+                var name = GenericsHelper.GetScriptFullName (kti.FullName);
+                if (KnownTypeInfos.ContainsKey (name)) {
+                    KnownTypeInfos.Add (name, kti);
+                } else {
+                    Console.WriteLine("KnownTypeInfos already contains {0}", name);
+                }
             }
             
             LinqExpressionEmitter = new LinqExpressionEmitter (Output);
@@ -156,8 +163,14 @@ namespace Joddes.CS
             
             Console.WriteLine ("Emitting {0}", TypeInfo.FullName);
             
-            EmitUsings ();
-            
+            //EmitUsings ();
+
+            if (type.ClassType == ClassType.Interface)
+            {
+                EmitInterface (type);
+                return;
+            }
+
             EmitCtor ();
             
             if (TypeInfo.InstanceMethods.Count () > 0 || TypeInfo.InstanceProperties.Count () > 0) {
@@ -165,7 +178,8 @@ namespace Joddes.CS
                 Write ("_.prototype = {");
                 NewLine ();
                 Indent ();
-                bool first = true;
+                Write ("constructor: _");
+                bool first = false;
                 
                 var types = TypeInfo.InstanceIndexers.Keys;
                 //types.Sort ();
@@ -192,6 +206,20 @@ namespace Joddes.CS
                     }
                     //Write (name, ": ");
                     TypeInfo.InstanceProperties[name].AcceptVisitor (this, null);
+                }
+
+                names = new List<string> (TypeInfo.InstanceEvents.Keys);
+                names.Sort ();
+                foreach (var name in names) {
+                    if (first) {
+                        first = false;
+                    } else {
+                        Write (",");
+                        NewLine ();
+                        NewLine ();
+                    }
+                    //Write (name, ": ");
+                    TypeInfo.InstanceEvents[name].AcceptVisitor (this, null);
                 }
                 
                 names = new List<string> (type.InstanceMethods.Keys);
@@ -245,6 +273,67 @@ namespace Joddes.CS
                 
                 VisitMethodDeclaration (type.StaticMethods[name], null);
             }
+
+            var baseType = GetBaseTypeDefinition ();
+
+            if (baseType != null && !UsedTypes.ContainsKey (GenericsHelper.GetScriptFullName (baseType.FullName)))
+            {
+                UsedTypes[GenericsHelper.GetScriptFullName (baseType.FullName)] = baseType;
+            }
+
+            var hasUsings = false;
+            foreach (var k in UsedTypes.Keys.OrderBy (s => s))
+            {
+                if (!IsHidden (UsedTypes[k]) && UsedTypes[k].FullName != TypeInfo.FullName) {
+                    if (!hasUsings) {
+                        hasUsings = true;
+                        Output.Insert (0, "\n");
+                        Output.Insert (0, "\n");
+                        Output.Insert (0, ");");
+                    } else
+                    {
+                        Output.Insert (0, "\n");
+                        Output.Insert (0, ",");
+                    }
+
+                    Output.Insert (0, "\"" + k + "\"");
+                    //Write (k);
+                }
+            }
+
+            if (hasUsings)
+            {
+                Output.Insert (0, "JDS.using(");
+            }
+
+            //Console.WriteLine("::::::::::USEDTYPES: {0}", UsedTypes.Keys.ToArray().ToString());
+        }
+
+        public void EmitInterface (JsTypeInfo type)
+        {
+            //EmitUsings ();
+
+            var td = KnownTypes[GenericsHelper.GetScriptFullName (type.FullName)];
+
+            Write (");");
+            NewLine ();
+            NewLine();
+            Write ("JDS.defineInterface('", type.FullName, "'");
+
+            if (td.HasInterfaces) {
+                Write (", function() { return [");
+                foreach (var i in td.Interfaces)
+                {
+                    Output.Insert (0, "\"" + GenericsHelper.GetScriptFullName (i.FullName) + "\",\n ");
+                    Write (GenericsHelper.GetScriptFullName (i.FullName));
+                    Write (", ");
+                }
+                Write ("];}");
+            }
+
+            Write (");");
+
+            Output.Insert(0, "JDS.using(");
         }
 
         public void EmitEnsureNamespace ()
@@ -291,7 +380,7 @@ namespace Joddes.CS
             foreach (TypeDefinition t in (from k in KnownTypes
                 where (from u2 in TypeInfo.Usings
                     where k.Key.StartsWith (u2)
-                    select u2).Count () > 0 && k.Key != TypeInfo.FullName && !k.Value.IsInterface
+                    select u2).Count () > 0 && k.Key != TypeInfo.FullName /*&& !k.Value.IsInterface*/
                 select k.Value).Distinct ()) {
                 var hidden = GetAttribute ("Hidden", t.CustomAttributes) != null;
                 if (!hidden && !t.FullName.Contains ("/")) {
@@ -336,8 +425,6 @@ namespace Joddes.CS
                 EmitCtorForEnum ();
                 break;
             case ClassType.Interface:
-                Write ("{ };");
-                NewLine ();
                 break;
             default:
                 throw new ApplicationException (string.Format ("Unsupported class type: {0}", TypeInfo.ClassType));
@@ -389,6 +476,9 @@ namespace Joddes.CS
                 }
                 Write (");");
                 NewLine ();
+                Write ("this.inherit(", GenericsHelper.GetScriptFullName (TypeInfo.FullName), ", ", GenericsHelper.GetScriptFullName (baseType), ");");
+                NewLine ();
+
                 requireNewLine = true;
             }
             
@@ -410,7 +500,23 @@ namespace Joddes.CS
             }
             
             EndBlock ();
-            Write (");");
+            if (KnownTypes[GenericsHelper.GetScriptFullName (TypeInfo.FullName)].HasInterfaces) {
+
+                WriteComma ();
+                Write ("function() { return [");
+                var ifaces = KnownTypes[GenericsHelper.GetScriptFullName (TypeInfo.FullName)].Interfaces;
+                for (var i = 0; i < ifaces.Count; i++) {
+                    var ifacename = GenericsHelper.GetScriptFullName (ifaces[i].FullName);
+                    Write (ifacename);
+                    if (i < ifaces.Count - 1) {
+                        WriteComma ();
+                    }
+                    UsedTypes.Add(ifacename, KnownTypes[ifacename]);
+                }
+                Write ("]; }");
+
+            }
+                Write (");");
             NewLine ();
         }
 
@@ -486,8 +592,10 @@ namespace Joddes.CS
             if (paramdefinitions == null) {
                 AddLocals (parameters);
             } else {
-                foreach (ParameterDefinition p in paramdefinitions) {
-                    Locals.Add (p.Name, p.ParameterType);
+                for (var i = 0; i < paramdefinitions.Count; i++) {
+                    ParameterDefinition p = paramdefinitions[i];
+                    //Console.WriteLine ("AddLocal: {0}: {1}", parameters[i].ParameterName, p.ParameterType);
+                    Locals.Add (parameters[i].ParameterName, p.ParameterType);
                 }
             }
             
@@ -510,10 +618,10 @@ namespace Joddes.CS
                 Write (" }");
             }
             
-            if (ThisRefCountInMethods > savedThisCount) {
+            //if (ThisRefCountInMethods > savedThisCount) {
                 //Output.Insert(savedPos, RUNTIME_HELPER_NAME + ".bind(this)(");
                 Write (".bind(this)");
-            }
+            //}
             
             PopLocals ();
         }
@@ -791,14 +899,7 @@ namespace Joddes.CS
                     //Console.WriteLine (guess);
                     if (KnownTypes.ContainsKey (guess))
                         return guess;
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
+
                     int index = namespacePrefix.LastIndexOf (".");
                     if (index < 0)
                         break;
@@ -832,9 +933,36 @@ namespace Joddes.CS
             if (TypeInfo.StaticFields.ContainsKey (id)) {
                 return ResolveType (TypeInfo.StaticFields[id].Value.TypeReference.Type);
             }
+
+            if (TypeInfo.InstanceProperties.ContainsKey (id)) {
+                return ResolveType (TypeInfo.InstanceProperties[id].TypeReference.Type);
+            }
+            if (TypeInfo.StaticProperties.ContainsKey (id)) {
+                return ResolveType (TypeInfo.StaticProperties[id].TypeReference.Type);
+            }
             
             if (TypeInfo.InstanceMethods.ContainsKey (id)) {
                 return null;
+            }
+
+            if (TypeInfo.InstanceEvents.ContainsKey (id))
+            {
+                return ResolveType (TypeInfo.InstanceEvents[id].TypeReference.Type);
+            }
+
+            if (TypeInfo.StaticEvents.ContainsKey (id)) {
+                return ResolveType (TypeInfo.StaticEvents[id].TypeReference.Type);
+            }
+
+            if (TypeInfo.InstanceDelegates.ContainsKey (id))
+            {
+                var t = ResolveType (TypeInfo.InstanceDelegates[id].ReturnType.Type);
+                Console.WriteLine ("T: {0}", t);
+                return t;
+            }
+
+            if (TypeInfo.StaticDelegates.ContainsKey (id)) {
+                return ResolveType (TypeInfo.StaticDelegates[id].ReturnType.Type);
             }
             
             if (id.IndexOf ("[]") > 0) {
@@ -842,19 +970,146 @@ namespace Joddes.CS
             }
             
             Console.WriteLine ("No Type: {0}", id);
-            if (id == "ci") {
-                throw new Exception ();
+            //throw new Exception();
+            return null;
+        }
+
+        object ResolveNamespaceOrType2 (string id)
+        {
+            if (KnownTypes.ContainsKey (id))
+                return KnownTypes[id];
+            
+            string guess;
+            
+            string namespacePrefix = TypeInfo.Namespace;
+            if (!String.IsNullOrEmpty (namespacePrefix)) {
+                while (true) {
+                    guess = namespacePrefix + "." + id;
+
+                    //Console.WriteLine (guess);
+                    if (KnownTypes.ContainsKey (guess))
+                        return KnownTypes[guess];
+                    
+                    int index = namespacePrefix.LastIndexOf (".");
+                    if (index < 0)
+                        break;
+                    namespacePrefix = namespacePrefix.Substring (0, index);
+                }
             }
             
-            if (id == "IEnumerable`1") {
-                throw new Exception ();
+            if (Locals.ContainsKey (id)) {
+                var tr = Locals[id] as ICSharpCode.NRefactory.Ast.TypeReference;
+                Console.WriteLine ("tr: {0}", tr);
+                if (tr != null) {
+                    return tr;
+                } else {
+                    var tr2 = Locals[id] as Mono.Cecil.ParameterDefinition;
+                    if (tr2 != null) {
+                        return tr2.ParameterType;
+                    }
+                }
             }
+            
+            foreach (string usingPrefix in TypeInfo.Usings) {
+                guess = usingPrefix + "." + id;
+                
+                if (KnownTypes.ContainsKey (guess))
+                    return KnownTypes[guess];
+            }
+            if (TypeInfo.InstanceFields.ContainsKey (id)) {
+                return TypeInfo.InstanceFields[id].Value.TypeReference;
+            }
+            
+            if (TypeInfo.StaticFields.ContainsKey (id)) {
+                return TypeInfo.StaticFields[id].Value.TypeReference;
+            }
+            
+            if (TypeInfo.InstanceProperties.ContainsKey (id)) {
+                return TypeInfo.InstanceProperties[id].TypeReference;
+            }
+            if (TypeInfo.StaticProperties.ContainsKey (id)) {
+                return TypeInfo.StaticProperties[id].TypeReference;
+            }
+            
+            if (TypeInfo.InstanceMethods.ContainsKey (id)) {
+                //return TypeInfo.InstanceMethods[id].TypeReference;
+                return null;
+            }
+            
+            if (TypeInfo.InstanceEvents.ContainsKey (id)) {
+                return TypeInfo.InstanceEvents[id].TypeReference;
+            }
+            
+            if (TypeInfo.StaticEvents.ContainsKey (id)) {
+                return TypeInfo.StaticEvents[id].TypeReference;
+            }
+            
+            if (TypeInfo.InstanceDelegates.ContainsKey (id)) {
+                var t = TypeInfo.InstanceDelegates[id].ReturnType;
+                Console.WriteLine ("T: {0}", t);
+                return t;
+            }
+            
+            if (TypeInfo.StaticDelegates.ContainsKey (id)) {
+                return TypeInfo.StaticDelegates[id].ReturnType;
+            }
+
+            /*
+            if (id.IndexOf ("[]") > 0) {
+                return id;
+            }*/
+            
+            Console.WriteLine ("No Type: {0}", id);
+            //throw new Exception();
             return null;
         }
 
         string ResolveType (string id)
         {
-            return ResolveNamespaceOrType (id, false);
+            var typeName = ResolveNamespaceOrType (id, false);
+
+            if (!string.IsNullOrEmpty (typeName)) {
+                var key = GenericsHelper.GetScriptFullName (typeName);
+                if (!UsedTypes.ContainsKey (key))
+                {
+                    UsedTypes[key] = KnownTypes[key];
+                }
+            }
+            return typeName;
+        }
+
+        object ResolveType2 (string id)
+        {
+            var type = ResolveNamespaceOrType2 (id);
+
+            if (type != null) {
+                string key = null;
+                var ictype = type as ICSharpCode.NRefactory.Ast.TypeReference;
+                var mtype = type as Mono.Cecil.TypeReference;
+                if (ictype != null)
+                {
+                    var t = ResolveType (ictype.Type);
+                    if (t == null)
+                    {
+                        Console.WriteLine ("Couldn't resolve: {0}", ictype);
+                    } else {
+                        key = GenericsHelper.GetScriptFullName (t);
+                    }
+                }
+                if (mtype != null)
+                {
+                    key = GenericsHelper.GetScriptFullName (mtype.FullName);
+                }
+
+                if (!string.IsNullOrEmpty(key) && !UsedTypes.ContainsKey (key)) {
+                    if (!KnownTypes.ContainsKey (key))
+                    {
+                        Console.WriteLine("Not in Known Types: {0}", key);
+                    }
+                    UsedTypes[key] = KnownTypes[key];
+                }
+            }
+            return type;
         }
 
         TypeDefinition GetTypeDefinition ()
@@ -868,9 +1123,24 @@ namespace Joddes.CS
 
         TypeDefinition GetTypeDefinition (AstTypeReference reference)
         {
+            if (reference.IsNull) {
+                Console.WriteLine ("There is no type definition for a null reference type (anonymous object)");
+                return null;
+            }
             string name = GenericsHelper.GetScriptName (reference);
+
             name = ResolveType (name);
-            if (name != null) {
+            return GetTypeDefinition (name);
+        }
+
+        TypeDefinition GetTypeDefinition (Mono.Cecil.TypeReference reference)
+        {
+            return GetTypeDefinition (GenericsHelper.GetScriptFullName(reference));
+        }
+
+        TypeDefinition GetTypeDefinition (string name)
+        {
+            if (name != null && KnownTypes.ContainsKey(name)) {
                 return KnownTypes[name];
             }
             Console.WriteLine ("Couldn't get TypeDefinition: " + name);
@@ -963,8 +1233,7 @@ namespace Joddes.CS
             var parts = new List<string> ();
             Expression current = node.TargetObject;
             var genericCount = -1;
-            
-            
+
             while (true) {
                 //Console.WriteLine ("Current: " + current);
                 
@@ -990,14 +1259,16 @@ namespace Joddes.CS
                 }
                 break;
             }
-            
+
             if (parts.Count < 1)
                 return null;
             if (genericCount < 0)
                 genericCount = 0;
             
             var name = String.Join (".", parts.ToArray (), 0, parts.Count - 1);
-            
+
+            //Console.WriteLine ("Name: {0}", name);
+
             string typeName = TypeInfo.FullName;
             if (Locals.ContainsKey (name)) {
                 typeName = Locals[name].ToString ();
@@ -1005,12 +1276,11 @@ namespace Joddes.CS
                 typeName = ResolveType (name);
             }
             
-            //Console.WriteLine ("TypeName: " + String.Join(".", parts.ToArray()));
+            Console.WriteLine ("TypeName: {0}, {1}", typeName, String.Join (".", parts.ToArray ()));
             
             if (String.IsNullOrEmpty (typeName))
                 return null;
-            
-            
+
             string methodName = parts[parts.Count - 1];
             
             if (KnownTypes.ContainsKey (typeName)) {
@@ -1018,10 +1288,18 @@ namespace Joddes.CS
                 MethodDefinition[] methods = (from m in type.Methods
                     where m.Name == methodName
                     select m).ToArray ();
-                
+
+                //Console.WriteLine ("Methods: {0}", methods.Length);
                 foreach (var method in methods) {
-                    if (method.IsStatic && method.Parameters.Count == node.Arguments.Count && method.GenericParameters.Count == genericCount)
-                        return JsMetadataChecker.GetNativeInlineImpl (method);
+                    //Console.WriteLine ("{0} == {1} && {2} == {3}", method.Parameters.Count, node.Arguments.Count, method.GenericParameters.Count, genericCount);
+                    if (                    /*method.IsStatic
+                        && */method.Parameters.Count == node.Arguments.Count
+                        && method.GenericParameters.Count == genericCount) {
+                        //var native = JsMetadataChecker.GetNativeInlineImpl (method);
+                        var native = GetNativeName (method.CustomAttributes);
+                        Console.WriteLine ("Native: {0}", native);
+                        return native;
+                    }
                 }
             }
             
@@ -1058,20 +1336,87 @@ namespace Joddes.CS
 
         public bool IsEvent (Expression node)
         {
-            var reference = node as MemberReferenceExpression;
-            if (reference != null) {
-                var type = ResolveOwnerType (reference);
-                
+            var mnode = node as MemberReferenceExpression;
+            var inode = node as IdentifierExpression;
+
+            /*
+            object type = null;
+
+            if (mnode != null)
+            {
+                type = ResolveOwnerType (mnode.TargetObject);
+            }
+            if (inode != null)
+            {
+                type = ResolveOwnerType(inode);
+            }*/
+            var type = ResolveOwnerType (node);
+
+            //Console.WriteLine("IsEvent. Owner: {0}", type);
+
+            if (type != null) {
                 var tr = type as TypeDefinition;
+                var trr = type as Mono.Cecil.TypeReference;
+                var tt = type as ICSharpCode.NRefactory.Ast.TypeReference;
+
+                if (tt != null)
+                {
+                    var t = ResolveType (tt.Type);
+                    if(t != null) {
+                        tr = KnownTypes[GenericsHelper.GetScriptFullName (t)];
+                    }
+                }
+                if (trr != null)
+                {
+                    tr = KnownTypes[GenericsHelper.GetScriptFullName (trr.FullName)];
+                }
                 if (tr != null) {
-                    
-                    var e = FindEvent (reference.MemberName, tr);
+                    string name = null;
+
+                    if (mnode != null)
+                    {
+                        name = mnode.MemberName;
+                    } else if (inode != null)
+                    {
+                        name = inode.Identifier;
+                    }
+                    var e = FindEvent (name, tr);
                     if (e != null) {
                         return true;
                     }
                 }
             }
-            
+
+            //Console.WriteLine ("NotEvent: {0} ({1})", node, type);
+            return false;
+        }
+
+        public bool IsThisIndexer (Expression node)
+        {
+            var reference = node as IndexerExpression;
+            if (reference != null) {
+                var type = ResolveOwnerType (reference);
+
+                //Console.WriteLine ("========Indexer: {0}. Type: {1}", node, type);
+
+                var mctype = type as Mono.Cecil.TypeReference;
+                var ictype = type as ICSharpCode.NRefactory.Ast.TypeReference;
+                if (mctype != null)
+                {
+                    if (!mctype.IsArray && !IsHidden(GetTypeDefinition(mctype)))
+                    {
+                        return true;
+                    }
+                } else if (ictype != null && !IsHidden(GetTypeDefinition(ictype)))
+                {
+                    if (!ictype.IsArrayType)
+                    {
+                        return true;
+                    }
+                }
+
+            }
+
             return false;
         }
 
@@ -1146,28 +1491,38 @@ namespace Joddes.CS
             bool isStatic = JsSourceInspector.HasModifier (node.Modifier, Modifiers.Static);
             
             if (node.IsExtensionMethod) {
-                
-                Write ("window.addEventListener('usingsloaded', function() ");
+                var name = ResolveType (node.Parameters[0].TypeReference.Type);
+                NewLine ();
+
+                //Write ("window.addEventListener('usingsloaded', function() ");
                 //NewLine ();
-                BeginBlock ();
-                foreach (TypeDefinition t in KnownTypes.Values) {
+                //BeginBlock ();
+                Write ("JDS.defineExtensionMethod('", name, "', '", GenericsHelper.GetScriptName (node), "', ");
+                /*foreach (TypeDefinition t in KnownTypes.Values) {
                     if (t.IsInterface) {
                         continue;
                     }
                     bool hasThisInterface = false;
-                    var name = ResolveType (node.Parameters[0].TypeReference.Type);
-                    foreach (Mono.Cecil.TypeReference i in t.Interfaces) {
-                        //Console.WriteLine ("Path: {0} == {1}", i.FullName, name);
-                        if (GenericsHelper.GetScriptFullName (i) == name) {
-                            hasThisInterface = true;
-                            break;
+
+
+
+                    if (GenericsHelper.GetScriptFullName (t.FullName) == name)
+                    {
+                        hasThisInterface = true;
+                    } else {
+                        foreach (Mono.Cecil.TypeReference i in t.Interfaces) {
+                            Console.WriteLine ("Path: {0} == {1}", i.FullName, name);
+                            if (GenericsHelper.GetScriptFullName (i) == name) {
+                                hasThisInterface = true;
+                                break;
+                            }
                         }
                     }
                     
                     if (hasThisInterface) {
                         Write (GenericsHelper.GetScriptFullName (t), ".prototype.", GenericsHelper.GetScriptName (node), " = ");
                     }
-                }
+                }*/
             } else {
                 if (isStatic) {
                     Write ("_.", GenericsHelper.GetScriptName (node), " = ");
@@ -1177,14 +1532,27 @@ namespace Joddes.CS
                 }
             }
             Write ("function");
-            EmitMethodParameters (node.Parameters, node);
+
+            string paramname = null;
+            var parms = node.Parameters;
+            
+            if (node.IsExtensionMethod) {
+                paramname = node.Parameters[0].ParameterName;
+                parms.RemoveAt (0);
+            }
+            EmitMethodParameters (parms, node);
             Write (" ");
             
             
             var nativeImpl = GetNativeImplLines (node);
             if (nativeImpl == null) {
+                int pos = Output.Length;
                 node.Body.AcceptVisitor (this, null);
-                if (isStatic) {
+
+                if (node.IsExtensionMethod) {
+                    Output.Insert (pos + 2, "  var " + paramname + " = this;\n");
+                }
+                if (isStatic && !node.IsExtensionMethod) {
                     Write (";");
                 }
             } else {
@@ -1199,11 +1567,71 @@ namespace Joddes.CS
                     NewLine ();
                 }
             }
-            if (node.IsExtensionMethod) {
+            /*if (node.IsExtensionMethod) {
                 EndBlock ();
                 Write (");");
+            }*/
+
+            bool hasAttribute = false;
+
+            if (node.Attributes.Count > 0) {
+                foreach (AttributeSection section in node.Attributes)
+            {
+                    foreach (ICSharpCode.NRefactory.Ast.Attribute a in section.Attributes) {
+                        var attributeTypeName = ResolveType (a.Name + "Attribute");
+                        var at = KnownTypes[attributeTypeName];
+                        if (!IsHidden (at))
+                        {
+                            hasAttribute = true;
+                        }
+                    }
+                }
             }
-            
+
+            if (hasAttribute) {
+                Write (".setAttributes([");
+                bool first = true;
+                foreach (AttributeSection section in node.Attributes)
+                {
+                    foreach (ICSharpCode.NRefactory.Ast.Attribute a in section.Attributes) {
+                        var attributeTypeName = ResolveType (a.Name + "Attribute");
+
+                        if (!first) {
+                            Write (", ");
+                        } else {
+                            first = false;
+                        }
+
+                        Write ("function() {");
+                        if (a.NamedArguments.Count > 0) {
+                            Write ("return Object.create(");
+                            Write (attributeTypeName);
+                            WriteComma ();
+                            Write ("{");
+                            var list = a.NamedArguments;
+                            foreach (NamedArgumentExpression item in list) {
+                                if (item != list[0])
+                                    WriteComma ();
+                                Write (item.Name, ": { value: ");
+                                item.Expression.AcceptVisitor (this, null);
+                                Write (" }");
+                            }
+                            Write ("}");
+
+                            Write (");");
+                        } else {
+                            Write ("return new ", attributeTypeName, "();");
+                        }
+                        Write ("}");
+                    }
+                }
+                Write ("])");
+            }
+
+            if (node.IsExtensionMethod) {
+                Write(");");
+            }
+
             return null;
         }
 
@@ -1241,6 +1669,7 @@ namespace Joddes.CS
                     if (type == null) {
                         type = returnType;
                     }
+
                     //Console.WriteLine ("Initializer: " + variable.Initializer);
                     
                     //Console.WriteLine ("{0} Return Type: {1}", variable.Name, type);
@@ -1265,6 +1694,10 @@ namespace Joddes.CS
             if (node.IsNull)
                 return null;
             WriteScript (node.Value);
+
+            if (node.Value != null) {
+                return KnownTypes[node.Value.GetType ().FullName];
+            }
             return null;
         }
 
@@ -1405,6 +1838,39 @@ namespace Joddes.CS
             return null;
         }
 
+        public override object VisitEventDeclaration (EventDeclaration node, object data)
+        {
+            Write ("$", node.Name, ": null,");
+            NewLine ();
+            Write ("get ", node.Name, "()");
+            BeginBlock ();
+            Write ("if(this.$", node.Name, " == null) {");
+            Write ("return null;");
+            Write ("}");
+
+            Write ("return function() { var args = arguments;");
+            Write ("   this.$", node.Name, ".forEach(function(f) {");
+            Write (" f.apply(this, args);");
+            Write ("});}");
+            NewLine ();
+            EndBlock ();
+            WriteComma ();
+
+            NewLine();
+            Write ("set ", node.Name, "(value)");
+            BeginBlock ();
+            Write ("if(value != null) {");
+            Write ("if(this.$", node.Name, " == null) {");
+            Write ("this.$", node.Name, " = [];");
+            Write ("}");
+            Write ("this.$", node.Name, ".push(value);");
+            Write ("}");
+            NewLine ();
+            EndBlock ();
+
+            return null;
+        }
+
         public override object VisitUnaryOperatorExpression (UnaryOperatorExpression node, object data)
         {
             switch (node.Op) {
@@ -1454,10 +1920,82 @@ namespace Joddes.CS
             return null;
         }
 
+        private Mono.Cecil.MethodDefinition TypeOperatorMethod (object leftType, BinaryOperatorType op)
+        {
+            var type = leftType as Mono.Cecil.TypeReference;
+
+            var methodName = "op_";
+            switch (op) {
+            case BinaryOperatorType.Add:
+                methodName += "Addition";
+                break;
+            case BinaryOperatorType.Subtract:
+                methodName += "Subtraction";
+                break;
+            default:
+                return null;
+            }
+
+            if (type != null) {
+                var def = type.Resolve ();
+                foreach (MethodDefinition method in def.Methods)
+                {
+                    if (method.IsStatic && method.Name == methodName)
+                    {
+                        return method;
+                    }
+                }
+            }
+
+            return null;
+        }
+
         public override object VisitBinaryOperatorExpression (BinaryOperatorExpression node, object data)
         {
-            node.Left.AcceptVisitor (this, null);
+            object returnType = null;
+
+            var startPos = Output.Length;
+            var leftType = node.Left.AcceptVisitor (this, null);
+
+            var opMethod = TypeOperatorMethod (leftType, node.Op);
+
+            if (opMethod != null)
+            {
+                var ictype = leftType as ICSharpCode.NRefactory.Ast.TypeReference;
+                var mtype = leftType as Mono.Cecil.TypeReference;
+
+                var opName = "";
+                switch (node.Op) {
+                case BinaryOperatorType.Add:
+                    opName = "Addition";
+                    break;
+                case BinaryOperatorType.Subtract:
+                    opName = "Subtraction";
+                    break;
+                default:
+                    Console.WriteLine ("TODO");
+                    break;
+                }
+
+                string fullName = null;
+                if (ictype != null)
+                {
+                    fullName = GenericsHelper.GetScriptFullName (ResolveType (ictype.Type));
+                }
+                if (mtype != null) {
+                    fullName = mtype.FullName;
+                }
+                Output.Insert (startPos, fullName + ".op_"+opName+"(");
+                WriteComma ();
+                node.Right.AcceptVisitor (this, null);
+                Write(")");
+
+                return opMethod.ReturnType;
+                //Write ("System.DateTime.$add(left, right)");
+            }
+
             Write (" ");
+
             switch (node.Op) {
             case BinaryOperatorType.Add:
                 Write ("+");
@@ -1473,18 +2011,22 @@ namespace Joddes.CS
                 break;
             case BinaryOperatorType.Equality:
                 Write ("==");
+                returnType = KnownTypes["System.Boolean"];
                 break;
             case BinaryOperatorType.ExclusiveOr:
                 Write ("^");
                 break;
             case BinaryOperatorType.GreaterThan:
                 Write (">");
+                returnType = KnownTypes["System.Boolean"];
                 break;
             case BinaryOperatorType.GreaterThanOrEqual:
                 Write (">=");
+                returnType = KnownTypes["System.Boolean"];
                 break;
             case BinaryOperatorType.InEquality:
                 Write ("!=");
+                returnType = KnownTypes["System.Boolean"];
                 break;
             case BinaryOperatorType.LessThan:
                 Write ("<");
@@ -1494,9 +2036,11 @@ namespace Joddes.CS
                 break;
             case BinaryOperatorType.LogicalAnd:
                 Write ("&&");
+                returnType = KnownTypes["System.Boolean"];
                 break;
             case BinaryOperatorType.LogicalOr:
                 Write ("||");
+                returnType = KnownTypes["System.Boolean"];
                 break;
             case BinaryOperatorType.Modulus:
                 Write ("%");
@@ -1521,7 +2065,7 @@ namespace Joddes.CS
             }
             Write (" ");
             node.Right.AcceptVisitor (this, null);
-            return null;
+            return returnType;
         }
 
 
@@ -1548,9 +2092,7 @@ namespace Joddes.CS
                     } else {
                         attr = GetAttribute ("Native", type.CustomAttributes);
                         if (attr != null) {
-                            //Console.WriteLine ("Native: {0}", (attr.ConstructorArguments[0].Value));
                             Write (((Mono.Cecil.CustomAttributeArgument[])attr.ConstructorArguments[0].Value)[0].Value);
-                            Console.WriteLine ("DONe {0}", type);
                             return type;
                         }
                     }
@@ -1559,7 +2101,7 @@ namespace Joddes.CS
             }
             
                         /* Instance method */
-var isMethod = (from m in TypeInfo.InstanceMethods
+        var isMethod = (from m in TypeInfo.InstanceMethods
                 where m.Key == id
                 select m).Count () > 0;
             if (isMethod) {
@@ -1569,19 +2111,19 @@ var isMethod = (from m in TypeInfo.InstanceMethods
             }
             
                         /* Instance field */
-if (TypeInfo.InstanceFields.ContainsKey (id)) {
+        if (TypeInfo.InstanceFields.ContainsKey (id)) {
                 Write ("this.", id);
                 return TypeInfo.InstanceFields[id].Value.TypeReference;
             }
             
                         /* Instance property */
-if (TypeInfo.InstanceProperties.ContainsKey (id)) {
+        if (TypeInfo.InstanceProperties.ContainsKey (id)) {
                 Write ("this.", id);
                 return TypeInfo.InstanceProperties[id].TypeReference;
             }
             
                         /* Static field */
-var isStaticField = (from f in TypeInfo.StaticFields
+        var isStaticField = (from f in TypeInfo.StaticFields
                 where f.Key == id
                 select f).Count () == 1;
             
@@ -1593,14 +2135,24 @@ var isStaticField = (from f in TypeInfo.StaticFields
             
             
                         /* Static method */
-var isStaticMethod = (from m in TypeInfo.StaticMethods
+        var isStaticMethod = (from m in TypeInfo.StaticMethods
                 where m.Key == id
                 select m).Count () > 0;
             if (isStaticMethod) {
                 Write (TypeInfo.FullName, ".", id);
                 return null;
             }
-            
+
+            if (TypeInfo.InstanceEvents.ContainsKey (id))
+            {
+                Write ("this.", id);
+                 return TypeInfo.InstanceEvents[id].TypeReference;
+            }
+
+            if (TypeInfo.StaticEvents.ContainsKey (id)) {
+                Write (TypeInfo.FullName, ".", id);
+                return TypeInfo.InstanceEvents[id].TypeReference;
+            }
             foreach (var u in TypeInfo.Usings) {
                 if (KnownTypes.ContainsKey (u + "." + id)) {
                     Write (u + "." + id);
@@ -1631,15 +2183,22 @@ var isStaticMethod = (from m in TypeInfo.StaticMethods
 
         public override object VisitMemberReferenceExpression (MemberReferenceExpression node, object data)
         {
-            Mono.Cecil.TypeReference returnType = null;
-            
-            
-            
+            object returnType = null;
+
             var type = ResolveOwnerType (node);
             //if (node.MemberName == "Length") {
-            //Console.WriteLine ("MemberReferenceNode: {0} (type: {1})", node, type);
+            //    Console.WriteLine ("MemberReferenceNode: {0} (type: {1})", node, type);
             //}
-            
+
+            if (type != null && type is Mono.Cecil.TypeReference)
+            {
+                returnType = type;
+            }
+
+            if (type != null && type is ICSharpCode.NRefactory.Ast.TypeReference) {
+                returnType = type;
+            }
+
             if (type != null) {
                 
                 //if ((node.TargetObject is IdentifierExpression && Locals.ContainsKey (((IdentifierExpression)node.TargetObject).Identifier))
@@ -1651,17 +2210,25 @@ var isStaticMethod = (from m in TypeInfo.StaticMethods
                 Write (".");
                 //}
                 var tr = type as TypeDefinition;
-                
+
                 var trr = type as ICSharpCode.NRefactory.Ast.TypeReference;
                 if (trr != null) {
+                    var t = ResolveType (trr.Type);
+                    if (t != null) {
+                        tr = KnownTypes[GenericsHelper.GetScriptFullName (t)];
+                    }
                     if (trr.IsArrayType) {
                         tr = KnownTypes["System.Array"];
                     }
                 }
-                
-                
+
+                var mrr = type as Mono.Cecil.TypeReference;
+                if(mrr != null) {
+                    tr = KnownTypes[GenericsHelper.GetScriptFullName (mrr.FullName)];
+                }
+
                 if (IsEvent (node)) {
-                    if (tr != null) {
+                    if (tr != null && IsHidden ((TypeDefinition)tr)) {
                         var evt = GetEvent (node.MemberName, tr);
                         
                         return evt.EventType;
@@ -1757,9 +2324,75 @@ var isStaticMethod = (from m in TypeInfo.StaticMethods
             return attr != null;
         }
 
+        public object ResolveOwnerType (Expression node)
+        {
+            if (node is IndexerExpression)
+            {
+                return ResolveOwnerType ((IndexerExpression)node);
+            }
+            if (node is ParenthesizedExpression) {
+                return ResolveOwnerType ((ParenthesizedExpression)node);
+            }
+            if (node is CastExpression) {
+                return ResolveOwnerType ((CastExpression)node);
+            }
+            if (node is MemberReferenceExpression) {
+                return ResolveOwnerType ((MemberReferenceExpression)node);
+            }
+            if (node is ThisReferenceExpression) {
+                return ResolveOwnerType ((ThisReferenceExpression)node);
+            }
+            if (node is IdentifierExpression)
+            {
+                return ResolveOwnerType((IdentifierExpression)node);
+            }
+
+            return null;
+        }
+
+        public object ResolveOwnerType (IndexerExpression node)
+        {
+            return ResolveOwnerType (node.TargetObject);
+        }
+
+        public object ResolveOwnerType (ParenthesizedExpression node)
+        {
+            return ResolveOwnerType (node.Expression);
+        }
+
+        public object ResolveOwnerType (CastExpression node)
+        {
+            return node.CastTo;
+        }
+
+        public object ResolveOwnerType (ThisReferenceExpression node)
+        {
+            return KnownTypes[GenericsHelper.GetScriptFullName (TypeInfo.FullName)];
+        }
+
+        public object ResolveOwnerType (IdentifierExpression node)
+        {
+            if (TypeInfo.InstanceEvents.ContainsKey (node.Identifier))
+            {
+                return KnownTypes[GenericsHelper.GetScriptFullName(TypeInfo.FullName)];
+            }
+            return ResolveType2 (node.Identifier);
+        }
+
         public object ResolveOwnerType (MemberReferenceExpression node)
         {
-            var identifier = node.TargetObject as IdentifierExpression;
+            Expression targetObject = null;
+            var mnode = node as MemberReferenceExpression;
+            if (node is MemberReferenceExpression) {
+                targetObject = ((MemberReferenceExpression)node).TargetObject;
+            }/* else if (node is IndexerExpression)
+            {
+                targetObject = ((IndexerExpression)node).TargetObject;
+            } else {
+                throw new ArgumentException ("\"node\" must be a MemberReferenceExpression or a IndexerExpression");
+            }*/
+
+            var identifier = targetObject as IdentifierExpression;
             if (identifier != null) {
                 //if (string.IsNullOrEmpty (typeName)) {
                 CheckIdentifier (identifier.Identifier, identifier);
@@ -1779,14 +2412,14 @@ var isStaticMethod = (from m in TypeInfo.StaticMethods
                         resolvedName = ResolveType (astType.Type);
                     }
                     if (cecilType != null) {
-                        if (cecilType.Name.IndexOf ("[]") > 0) {
+                        if (cecilType.IsArray) {
                             return KnownTypes["System.Array"];
                         }
                         if (KnownTypes.ContainsKey (GenericsHelper.GetScriptFullName (cecilType.FullName))) {
                             return KnownTypes[GenericsHelper.GetScriptFullName (cecilType.FullName)];
                         }
                         resolvedName = ResolveType (cecilType.FullName);
-                        
+                    
                     }
                     
                     if (!string.IsNullOrEmpty (resolvedName) && KnownTypes.ContainsKey (resolvedName)) {
@@ -1794,27 +2427,38 @@ var isStaticMethod = (from m in TypeInfo.StaticMethods
                     }
                 }
                 //}
-                
-                var typeName = ResolveType (identifier.Identifier);
-                if (!string.IsNullOrEmpty (typeName) && KnownTypes.ContainsKey (typeName)) {
-                    var type = KnownTypes[typeName];
-                    if (type != null) {
-                        return type;
+
+                var type2 = ResolveType2 (identifier.Identifier);
+
+                if (type2 != null) {
+                    var ictype = type2 as ICSharpCode.NRefactory.Ast.TypeReference;
+                    var mtype = type2 as Mono.Cecil.TypeReference;
+                    Mono.Cecil.TypeDefinition type = null;
+                    if(ictype != null) {
+                        var t = ResolveType(ictype.Type);
+                        if(t != null) {
+                            type = KnownTypes[GenericsHelper.GetScriptFullName(t)];
+                        }
                     }
-                    
-                    
+                    if(mtype != null) {
+                        type = KnownTypes[GenericsHelper.GetScriptFullName(mtype.FullName)];
+                    }
+                    if(type != null) {
+                        var evt = FindEvent(node.MemberName, type);
+                        if(evt != null) {
+                            // return evt;
+                            return type;
+                        }
+                    }
+
+                    return type2;
                 }
                 
                 //typeName =
                 
                 if (TypeInfo.StaticFields.ContainsKey (identifier.Identifier)) {
                     var field = (FieldDeclaration)TypeInfo.StaticFields[identifier.Identifier].Value;
-                    var t = ResolveType (field.TypeReference.Type);
-                    if (KnownTypes.ContainsKey (t)) {
-                        return KnownTypes[t];
-                    } else {
-                        Console.WriteLine ("Type: {0} is not in KnownTypes.", t);
-                    }
+                    return field.TypeReference;
                 }
                 
                 var ns = ResolveNamespaceOrType (identifier.Identifier, true);
@@ -1827,7 +2471,7 @@ var isStaticMethod = (from m in TypeInfo.StaticMethods
                 Console.WriteLine ("Identifier not resolved: " + identifier.Identifier);
             }
             
-            var member = node.TargetObject as MemberReferenceExpression;
+            var member = targetObject as MemberReferenceExpression;
             if (member != null) {
                 var ns = GetFullName (member);
                 if (ns != null) {
@@ -1846,6 +2490,18 @@ var isStaticMethod = (from m in TypeInfo.StaticMethods
                     var owner = ResolveOwnerType (member);
                     var tr = owner as TypeDefinition;
                     var trr = owner as ICSharpCode.NRefactory.Ast.TypeReference;
+                    var mrr = owner as Mono.Cecil.TypeReference;
+
+                    if(mrr != null) {
+                        tr = KnownTypes[GenericsHelper.GetScriptFullName(mrr.FullName)];
+                    }
+
+                    if(trr != null) {
+                        var t = ResolveType(trr.Type);
+                        if(t != null) {
+                            tr = KnownTypes[GenericsHelper.GetScriptFullName(t)];
+                        }
+                    }
                     
                     if (tr != null) {
                         var property = GetProperty (member.MemberName, tr);
@@ -1873,31 +2529,38 @@ var isStaticMethod = (from m in TypeInfo.StaticMethods
                     Console.WriteLine ("OwnerType not found for: {0} ({1})", member.MemberName, owner.GetType ());
                 }
             }
+
+            if (node is IndexerExpression)
+            {
+                Console.WriteLine ("Can't find type for indexer expression {0}", node);
+                throw new Exception();
+                return null;
+            }
             
-            var te = node.TargetObject as ThisReferenceExpression;
+            var te = targetObject as ThisReferenceExpression;
             if (te != null) {
                 //Console.WriteLine ("***This");
                 ICSharpCode.NRefactory.Ast.TypeReference tr = null;
-                
-                if (TypeInfo.InstanceMethods.ContainsKey (node.MemberName)) {
-                    tr = TypeInfo.InstanceMethods[node.MemberName].TypeReference;
-                } else if (TypeInfo.InstanceProperties.ContainsKey (node.MemberName)) {
-                    var t = ResolveType (TypeInfo.InstanceProperties[node.MemberName].TypeReference.Type);
+
+                if (TypeInfo.InstanceMethods.ContainsKey (mnode.MemberName)) {
+                    tr = TypeInfo.InstanceMethods[mnode.MemberName].TypeReference;
+                } else if (TypeInfo.InstanceProperties.ContainsKey (mnode.MemberName)) {
+                    var t = ResolveType (TypeInfo.InstanceProperties[mnode.MemberName].TypeReference.Type);
                     if (t != null && KnownTypes.ContainsKey (t)) {
                         return KnownTypes[t];
                     } else {
-                        Console.WriteLine ("Property has unkown type: {0}", node.MemberName);
+                        Console.WriteLine ("Property has unkown type: {0}", mnode.MemberName);
                     }
-                } else if (TypeInfo.InstanceFields.ContainsKey (node.MemberName)) {
-                    return TypeInfo.InstanceFields[node.MemberName].Value.TypeReference;
+                } else if (TypeInfo.InstanceFields.ContainsKey (mnode.MemberName)) {
+                    return TypeInfo.InstanceFields[mnode.MemberName].Value.TypeReference;
                     
-                    var t = ResolveType (TypeInfo.InstanceFields[node.MemberName].Value.TypeReference.Type);
+                    var t = ResolveType (TypeInfo.InstanceFields[mnode.MemberName].Value.TypeReference.Type);
                     
                     if (t != null && KnownTypes.ContainsKey (t)) {
                         //Console.WriteLine ("T: {0}", t);
                         return KnownTypes[t];
                     } else {
-                        Console.WriteLine ("Field has unkown type: {0}", node.MemberName);
+                        Console.WriteLine ("Field has unkown type: {0}", mnode.MemberName);
                     }
                 }
                 
@@ -1908,30 +2571,30 @@ var isStaticMethod = (from m in TypeInfo.StaticMethods
                         var t = KnownTypes[r];
                         Console.WriteLine ("Instancemethod: {0}", t);
                         return t;
-                    } else if (node.TypeArguments.Count () == 1) {
+                    } else if (mnode.TypeArguments.Count () == 1) {
                         // TODO: Sjekk at retur typen er samme som TypeArguments[0]
-                        r = GenericsHelper.GetScriptFullName (ResolveType (node.TypeArguments[0].Type));
+                        r = GenericsHelper.GetScriptFullName (ResolveType (mnode.TypeArguments[0].Type));
                         if (KnownTypes.ContainsKey (r)) {
                             Console.WriteLine ("Return: {0}", KnownTypes[r]);
                             return KnownTypes[r];
                         } else {
-                            Console.WriteLine ("Type {0} is not in known types.", node.MemberName);
+                            Console.WriteLine ("Type {0} is not in known types.", mnode.MemberName);
                         }
                     } else {
                         Console.WriteLine ("Not found: {0}", r);
                     }
                 } else {
-                    Console.WriteLine ("Method or Property on ThisReference not found, name: {0}", node.MemberName);
+                    Console.WriteLine ("Method or Property on ThisReference not found, name: {0}", mnode.MemberName);
                 }
             }
             
-            var invocation = node.TargetObject as InvocationExpression;
+            var invocation = targetObject as InvocationExpression;
             if (invocation != null) {
                 Console.WriteLine ("Not implemented: ResolveOwnerType with invocation");
             }
             
             if (node is MemberReferenceExpression) {
-                var ns = GetFullName (node);
+                var ns = GetFullName (mnode);
                 if (ns != null && KnownTypes.ContainsKey (ns)) {
                     return null;
                 }
@@ -2034,7 +2697,7 @@ var isStaticMethod = (from m in TypeInfo.StaticMethods
         public override object VisitThisReferenceExpression (ThisReferenceExpression node, object data)
         {
             WriteThis ();
-            return null;
+            return KnownTypes[GenericsHelper.GetScriptFullName(TypeInfo.FullName)];
         }
 
         public override object VisitBaseReferenceExpression (BaseReferenceExpression node, object data)
@@ -2044,10 +2707,11 @@ var isStaticMethod = (from m in TypeInfo.StaticMethods
 
         public override object VisitInvocationExpression (InvocationExpression node, object data)
         {
-            //Console.WriteLine ("**** Invocation: {0}", node);
+            /*
+            Console.WriteLine ("**** Invocation: {0}", node);
             string nativeFormat = GetNativeInlineImpl (node);
             if (!string.IsNullOrEmpty (nativeFormat)) {
-                //Console.WriteLine ("NATIVEINLINE");
+                Console.WriteLine ("NATIVEINLINE");
                 //node.TargetObject.AcceptVisitor (this, null);
                 //Console.WriteLine ("**** TargetObject: {0}", node.TargetObject);
                 Write ("");
@@ -2061,30 +2725,14 @@ var isStaticMethod = (from m in TypeInfo.StaticMethods
                 Output = savedBuilder;
                 Output.Append (String.Format (nativeFormat, args.ToArray ()));
                 return null;
-            }
+            }*/
+
+            object returnType = null;
+            object method = null;
+
             
             MemberReferenceExpression targetMember = node.TargetObject as MemberReferenceExpression;
-            if (targetMember != null && targetMember.TargetObject is BaseReferenceExpression) {
-                var baseType = GetBaseMethodOwnerTypeDefinition (targetMember.MemberName, targetMember.TypeArguments.Count);
-                if (JsMetadataChecker.HasHiddenAttribute (baseType))
-                    throw CreateException (targetMember.TargetObject, "Cannot call base method, because parent class is hidden");
-                Write (GenericsHelper.GetScriptFullName (baseType), ".", GenericsHelper.GetScriptName (targetMember));
-                Write (".call(");
-                WriteThis ();
-                foreach (var arg in node.Arguments) {
-                    WriteComma ();
-                    arg.AcceptVisitor (this, null);
-                }
-                Write (")");
-            } else {
-                node.TargetObject.AcceptVisitor (this, null);
-                Write ("(");
-                EmitExpressionList (node.Arguments);
-                Write (")");
-            }
-            
-            //Console.WriteLine ("TargetMemeber: {0}", targetMember);
-            
+
             if (targetMember != null) {
                 var type = ResolveOwnerType (targetMember);
                 if (type != null) {
@@ -2092,51 +2740,192 @@ var isStaticMethod = (from m in TypeInfo.StaticMethods
                     var tt = type as Mono.Cecil.TypeDefinition;
                     var tr = type as ICSharpCode.NRefactory.Ast.TypeReference;
                     if (tt != null) {
-                        var method = (from m in tt.Methods
-                            where m.Name == targetMember.MemberName
-                            select m).ToArray ();
-                        if (method != null && method.Length > 0) {
-                            return method[0].ReturnType;
-                            
-                            
-                        } else {
-                            Console.WriteLine ("Method not found on type: {0}", targetMember);
-                            return type;
-                        }
+                        returnType = FindMethod (tt, node, targetMember, type, out method);
                     } else if (tr != null) {
                         var typeName = ResolveType (tr.Type);
                         if (KnownTypes.ContainsKey (typeName)) {
                             var t = KnownTypes[typeName];
-                            var method = (from m in t.Methods
-                                where m.Name == targetMember.MemberName
+                            var methods = (from m in t.Methods
+                                where m.Name == targetMember.MemberName && m.Parameters.Count == node.Arguments.Count
                                 select m).ToArray ();
-                            
-                            if (method != null && method.Length > 0) {
-                                return method[0].ReturnType;
+
+                            if (methods != null && methods.Length > 0) {
+                                method = methods[0];
+                                returnType = ((MethodDefinition)method).ReturnType;
+                            } else {
+                                Console.WriteLine ("Method not found on type: {0}", targetMember);
+                                returnType = type;
                             }
                         }
                         //Console.WriteLine ("TODO: TypeDecleration {0}", type.GetType());
                     }
                 } else {
-                    return type;
+                    returnType = type;
+                }
+            } else {
+                IdentifierExpression tm = node.TargetObject as IdentifierExpression;
+                if (tm != null) {
+                    if (TypeInfo.InstanceMethods.ContainsKey (tm.Identifier)) {
+                        method = TypeInfo.InstanceMethods[tm.Identifier];
+                    }
+                    
+                    if (method != null) {
+                        returnType = ((MethodDeclaration)method).TypeReference;
+                    }
                 }
             }
+
+
+
+
+            if (targetMember != null && targetMember.TargetObject is BaseReferenceExpression) {
+                var baseType = GetBaseMethodOwnerTypeDefinition (targetMember.MemberName, targetMember.TypeArguments.Count);
+                if (JsMetadataChecker.HasHiddenAttribute (baseType))
+                    throw CreateException (targetMember.TargetObject, "Cannot call base method, because parent class is hidden");
+                Write (GenericsHelper.GetScriptFullName (baseType), ".", GenericsHelper.GetScriptName (targetMember));
+                Write (".call(");
+                WriteThis ();
+                for (var i = 0; i < node.Arguments.Count; i++) {
+                    var arg = node.Arguments[i];
+                    WriteComma ();
+                    if (method != null) {
+                        var defmethod = method as MethodDefinition;
+                        var decmethod = method as MethodDeclaration;
+                        //Console.WriteLine ("0:{0} 1:{1} 2:{2}", arg, defmethod, decmethod);
+                        if (defmethod != null) {
+                            CurrentArgumentType = defmethod.Parameters[i].ParameterType;
+                        } else if (decmethod != null)
+                        {
+                            CurrentArgumentType = decmethod.Parameters[i].TypeReference;
+                        }
+
+                        //Console.WriteLine ("CurrentArgumentType: {0}", CurrentArgumentType);
+                    }
+                    arg.AcceptVisitor (this, null);
+                }
+                Write (")");
+            } else {
+                node.TargetObject.AcceptVisitor (this, null);
+                Write ("(");
+                //EmitExpressionList (node.Arguments);
+                for (var i = 0; i < node.Arguments.Count; i++) {
+                    var a = node.Arguments[i];
+                    if (a != node.Arguments[0])
+                        WriteComma ();
+
+                     if (method != null) {
+                        var defmethod = method as MethodDefinition;
+                        var decmethod = method as MethodDeclaration;
+                        //Console.WriteLine ("0:{0} 1:{1} 2:{2}", a, defmethod, decmethod);
+                        if (defmethod != null) {
+                            CurrentArgumentType = defmethod.Parameters[i].ParameterType;
+                        } else if (decmethod != null) {
+                            CurrentArgumentType = decmethod.Parameters[i].TypeReference;
+                        }
+
+                        //Console.WriteLine ("CurrentArgumentType: {0}", CurrentArgumentType);
+                    }
+
+                    a.AcceptVisitor (this, null);
+                }
+                Write (")");
+            }
+            
+            //Console.WriteLine ("TargetMemeber: {0}", targetMember);
+            
+            if (returnType != null)
+            {
+
+                return returnType;
+            }
+
             Console.WriteLine ("Unkown return type: {0}", node);
             return null;
         }
 
+        public object FindMethod (Mono.Cecil.TypeDefinition tt, InvocationExpression node, MemberReferenceExpression targetMember, object type, out object method)
+        {
+            object returnType = null;
+            method = null;
+
+            //Console.WriteLine ("HERE {0}", node);
+            var methods = (from m in tt.Methods
+                where m.Name == targetMember.MemberName && m.Parameters.Count == node.Arguments.Count
+                select m).ToArray ();
+
+            if (methods != null && methods.Length > 0) {
+                method = methods[0];
+                returnType = ((MethodDefinition)method).ReturnType;
+            }
+
+            foreach (var iface in tt.Interfaces)
+            {
+                var t = FindMethod (KnownTypes[GenericsHelper.GetScriptFullName (iface)], node, targetMember, type, out method);
+                if (t != null)
+                {
+                    returnType = t;
+                    break;
+                }
+            }
+
+            if (returnType == null && tt.BaseType != null && tt.BaseType.Name.ToLower () != "object") {
+
+                return FindMethod (KnownTypes[GenericsHelper.GetScriptFullName (tt.BaseType)], node, targetMember, type, out method);
+            } else if(returnType == null) {
+                Console.WriteLine ("Method not found on type: {0}. Definition: {1}", targetMember, tt.Methods[0]);
+                returnType = type;
+            }
+
+            return returnType;
+        }
+
         public override object VisitAssignmentExpression (AssignmentExpression node, object data)
         {
-            
             if ((node.Op == AssignmentOperatorType.Add || node.Op == AssignmentOperatorType.Subtract) && IsEvent (node.Left)) {
-                CurrentEventType = (Mono.Cecil.TypeReference)node.Left.AcceptVisitor (this, null);
-                
-                Write ("addEventListener('" + GetEventName (node.Left) + "', ");
-                node.Right.AcceptVisitor (this, null);
-                CurrentEventType = null;
-                Write (")");
+                //Console.WriteLine ("Event assign: Left: {0}", node.Left);
+                CurrentEventType = node.Left.AcceptVisitor (this, null);
+
+                var mnode = node.Left as MemberReferenceExpression;
+                var inode = node.Left as IdentifierExpression;
+                object tt = null;
+                if (mnode != null) {
+                    tt = ResolveOwnerType (mnode.TargetObject);
+                }
+                if (inode != null) {
+                    tt = ResolveOwnerType (inode);
+                }
+
+                var mtype = tt as Mono.Cecil.TypeReference;
+                var ictype = tt as ICSharpCode.NRefactory.Ast.TypeReference;
+                if (ictype != null)
+                {
+                    tt = KnownTypes[GenericsHelper.GetScriptFullName (ResolveType(ictype.Type))];
+                }
+                if (mtype != null)
+                {
+                    tt = KnownTypes[GenericsHelper.GetScriptFullName(mtype.FullName)];
+                }
+
+
+                //var tt = ResolveOwnerType (node.Left);
+
+                if (tt is TypeDefinition && IsHidden ((TypeDefinition)tt)) {
+                    Write ("addEventListener('" + GetEventName (node.Left) + "', ");
+                    node.Right.AcceptVisitor (this, null);
+                    CurrentEventType = null;
+                    Write (")");
+                } else {
+                    Write(" = ");
+                    node.Right.AcceptVisitor (this, null);
+                    CurrentEventType = null;
+                }
             } else {
-                node.Left.AcceptVisitor (this, null);
+                string dat = null;
+                if (IsThisIndexer( node.Left))
+                {
+                    dat = "set";
+                }
+                node.Left.AcceptVisitor (this, dat);
                 Write (" ");
                 switch (node.Op) {
                 case AssignmentOperatorType.Assign:
@@ -2174,8 +2963,15 @@ var isStaticMethod = (from m in TypeInfo.StaticMethods
                 default:
                     throw CreateException (node, "Unsupported assignment operator: " + node.Op.ToString ());
                 }
-                Write ("= ");
-                var returnType = node.Right.AcceptVisitor (this, null);
+                object returnType = null;
+                if (IsThisIndexer( node.Left))
+                {
+                    returnType = node.Right.AcceptVisitor (this, null);
+                    Write(")");
+                } else {
+                    Write ("= ");
+                    returnType = node.Right.AcceptVisitor (this, null);
+                }
             }
             return null;
         }
@@ -2226,7 +3022,8 @@ var isStaticMethod = (from m in TypeInfo.StaticMethods
             if (list.Count > 0)
                 Write (" ");
             Write ("]");
-            return null;
+
+            return node.CreateType;
         }
 
         public override object VisitLambdaExpression (LambdaExpression node, object data)
@@ -2239,24 +3036,76 @@ var isStaticMethod = (from m in TypeInfo.StaticMethods
                 body = node.ExpressionBody;
             
             if (CurrentEventType != null) {
-                //Console.WriteLine ("{0} {1}", KnownTypeInfos.Count, GenericsHelper.GetScriptFullName(CurrentEventType.DeclaringType));
-                var type = KnownTypes[GenericsHelper.GetScriptFullName (CurrentEventType.DeclaringType)];
+                //Console.WriteLine ("{0} {1}", KnownTypeInfos.Count, GenericsHelper.GetScriptFullName (CurrentEventType.DeclaringType));
+                //Console.WriteLine("CET: {0}", CurrentEventType);
+                var et = CurrentEventType as Mono.Cecil.TypeReference;
+                var et2 = CurrentEventType as ICSharpCode.NRefactory.Ast.TypeReference;
+
+                Mono.Cecil.TypeDefinition type = null;
+                string fullName = null;
+                string name = null;
+                if (et != null) {
+                    type = KnownTypes[GenericsHelper.GetScriptFullName (et.DeclaringType.FullName)];
+                    fullName = et.FullName;
+                } else if (et2 != null)
+                {
+                    //Console.WriteLine ("EVENTYPE: {0}", et2);
+                    type = KnownTypes[GenericsHelper.GetScriptFullName (ResolveType (TypeInfo.FullName))];
+                    name = et2.Type;
+                    //Console.WriteLine ("HERE: {0} {1}", type, name);
+                    //fullName = et2.
+                }
+
                 TypeDefinition delg = null;
                 foreach (TypeDefinition m in type.NestedTypes) {
-                    if (m.FullName == CurrentEventType.FullName) {
+                    if (m.FullName == fullName || m.Name == name) {
                         delg = m;
                         break;
                     }
-                    //Console.WriteLine ("Nested Type: {0}", m.Name);
+                    Console.WriteLine ("Nested Type: {0}", m.Name);
                 }
                 //var known = type.InstanceDelegates.ContainsKey (CurrentEventType.Name);
-                paramdefinitions = delg.Methods[0].Parameters;
+
+                //Console.WriteLine ("Delg: {0}", delg);
+               
+                var me = (from m in delg.Methods
+                    where m.Name == "Invoke"
+                    select m).First ();
+                //Console.WriteLine (me);
+                paramdefinitions = me.Parameters;
+            }
+
+            if (paramdefinitions == null && CurrentArgumentType != null)
+            {
+                var mt = CurrentArgumentType as Mono.Cecil.TypeReference;
+                if (mt != null)
+                {
+                    TypeDefinition type;
+                    if (data != null) {
+                        type = KnownTypes[GenericsHelper.GetScriptFullName (ResolveType (((ICSharpCode.NRefactory.Ast.TypeReference)data).Type))];
+                    } else {
+                        type = KnownTypes[GenericsHelper.GetScriptFullName (mt)];
+                    }
+
+                    /*
+                    Console.WriteLine ("Type: {0}", type);
+                     var me = (from m in type.Methods
+                        where m.Name == "Invoke"
+                        select m).First ();
+                    //Console.WriteLine(me);
+                    paramdefinitions = me.Parameters;*/
+                } else {
+                    Console.WriteLine("TODO: implement");
+                }
+                //var type = KnownTypes[GenericsHelper.GetScriptFullName (CurrentParameter.DeclaringType)];
+                //TypeDefinition delg = null;
             }
             //node.Parameters[0].TypeReference = null;
             
             // set CurrentEventType to null since we only need it to get the parameter types,
             // and so that we can support nested lambda expressions
             CurrentEventType = null;
+            CurrentArgumentType = null;
             
             //Console.WriteLine("Lambda: {0}", node.Parameters);
             
@@ -2333,6 +3182,11 @@ var isStaticMethod = (from m in TypeInfo.StaticMethods
             return node.CreateType;
         }
 
+        public override object VisitOperatorDeclaration (OperatorDeclaration operatorDeclaration, object data)
+        {
+            Console.WriteLine("TODO: VisitOperatorDeclaration");
+            return null;
+        }
 
         public override object VisitIfElseStatement (IfElseStatement node, object data)
         {
@@ -2430,18 +3284,67 @@ var isStaticMethod = (from m in TypeInfo.StaticMethods
         {
             if (node.Indexes.Count != 1)
                 throw CreateException (node, "Only one index is supported");
-            
+
+
             var type = node.TargetObject.AcceptVisitor (this, null);
-            
+
+            //Console.WriteLine ("Indexer: {0} Type: {1}", node, type);
+
             var index = node.Indexes[0];
             
             var primitive = index as PrimitiveExpression;
-            if (primitive != null && primitive.Value != null && Regex.Match (primitive.Value.ToString (), "^[_$a-z][_$a-z0-9]*$", RegexOptions.IgnoreCase).Success) {
-                Write (".", primitive.Value);
+
+            var mctype = type as Mono.Cecil.TypeReference;
+            var ictype = type as ICSharpCode.NRefactory.Ast.TypeReference;
+
+            if (mctype != null && !mctype.IsArray && !IsHidden (GetTypeDefinition (mctype)))
+            {
+                if (data == null) {
+                    Write (".get(");
+                    if (primitive != null && primitive.Value != null && Regex.Match (primitive.Value.ToString (), "^[_$a-z][_$a-z0-9]*$", RegexOptions.IgnoreCase).Success) {
+                        Write ("'", primitive.Value, "'");
+                    } else {
+                        index.AcceptVisitor (this, null);
+                    }
+                    Write (")");
+                } else {
+                        Write (".set(");
+                        if (primitive != null && primitive.Value != null && Regex.Match (primitive.Value.ToString (), "^[_$a-z][_$a-z0-9]*$", RegexOptions.IgnoreCase).Success) {
+                            Write ("'", primitive.Value, "',");
+                        } else {
+                            index.AcceptVisitor (this, null);
+                            Write (",");
+                        }
+                        //Write (")");
+                    }
+
+            } else if (ictype != null && !ictype.IsArrayType && !IsHidden (GetTypeDefinition (ictype))) {
+                if (data == null) {
+                        Write (".get(");
+                        if (primitive != null && primitive.Value != null && Regex.Match (primitive.Value.ToString (), "^[_$a-z][_$a-z0-9]*$", RegexOptions.IgnoreCase).Success) {
+                            Write ("'", primitive.Value, "'");
+                        } else {
+                            index.AcceptVisitor (this, null);
+                        }
+                        Write (")");
+                    } else {
+                        Write (".set(");
+                        if (primitive != null && primitive.Value != null && Regex.Match (primitive.Value.ToString (), "^[_$a-z][_$a-z0-9]*$", RegexOptions.IgnoreCase).Success) {
+                            Write ("'", primitive.Value, "',");
+                        } else {
+                            index.AcceptVisitor (this, null);
+                            Write(",");
+                        }
+                        //Write (")");
+                    }
             } else {
-                Write ("[");
-                index.AcceptVisitor (this, null);
-                Write ("]");
+                if (primitive != null && primitive.Value != null && Regex.Match (primitive.Value.ToString (), "^[_$a-z][_$a-z0-9]*$", RegexOptions.IgnoreCase).Success) {
+                    Write (".", primitive.Value);
+                } else {
+                    Write ("[");
+                    index.AcceptVisitor (this, null);
+                    Write ("]");
+                }
             }
             
             return type;
@@ -2470,7 +3373,7 @@ var isStaticMethod = (from m in TypeInfo.StaticMethods
                 }
                 //Write ("(");
             }
-            node.Expression.AcceptVisitor (this, null);
+            node.Expression.AcceptVisitor (this, node.CastTo);
             object returnType = node.CastTo;
             if (!castToTypeIsHidden) {
                 //WriteComma ();
@@ -2537,14 +3440,15 @@ var isStaticMethod = (from m in TypeInfo.StaticMethods
             
             //Console.WriteLine ("Node: {0}", name);
             if (isArray) {
+                var iName = GetNextIteratorName();
                 Write (";");
                 NewLine ();
-                Write ("for(var $j=0;$j < ", iteratorName, ".length;$j++)");
+                Write ("for(var ",iName,"=0;", iName, " < ", iteratorName, ".length;", iName, "++)");
                 
                 NewLine ();
                 BeginBlock ();
                 PushLocals ();
-                Write ("var ", node.VariableName, "=", iteratorName, "[$j];");
+                Write ("var ", node.VariableName, "=", iteratorName, "[", iName, "];");
                 NewLine ();
                 Locals.Add (node.VariableName, node.TypeReference);
                 
@@ -2718,7 +3622,7 @@ var isStaticMethod = (from m in TypeInfo.StaticMethods
         public override object VisitParenthesizedExpression (ParenthesizedExpression node, object data)
         {
             Write ("(");
-            node.Expression.AcceptVisitor (this, null);
+            node.Expression.AcceptVisitor (this, data);
             Write (")");
             return null;
         }

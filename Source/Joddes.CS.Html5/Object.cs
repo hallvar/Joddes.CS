@@ -28,7 +28,13 @@ namespace Joddes.CS.Html5
 				throw new System.NotSupportedException ();
 			}
 		}
-		
+
+        [Native("getMethodNames")]
+        public static string[] GetMethodNames (object obj)
+        {
+            throw new System.NotSupportedException();
+        }
+
 		public object this[string name] {
 			get {
 				throw new System.NotSupportedException ();

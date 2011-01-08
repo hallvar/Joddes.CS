@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{31BD5120-238B-418E-88C5-58B858ADE1B4}</ProjectGuid>
+    <ProjectTypeGuids>{349C5851-65DF-11DA-9384-00065B846F21};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Joddes.CS.TestRunner</RootNamespace>
+    <AssemblyName>Joddes.CS.TestRunner</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin</OutputPath>
+    <DefineConstants>DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <CustomCommands>
+      <CustomCommands>
+        <Command type="AfterBuild" command="mono ../../../Source/bin/Joddes.CS.Console.exe ../Joddes.CS.Tests.Web.csproj ../../../Source/Joddes.CS.CoreLibrary/bin/Release/Joddes.CS.CoreLibrary.dll" workingdir="${TargetDir}" />
+      </CustomCommands>
+    </CustomCommands>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.Core" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="web.config" />
+    <Content Include="images\favico.png" />
+    <Content Include="js\Joddes\Joddes.js" />
+    <Content Include="index.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="css\screen.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="App_Code\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="App_Code\TestRunner.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Source\Joddes.CS.TestFramework\Joddes.CS.TestFramework.csproj">
+      <Project>{5B8B0D9A-0374-480A-8D11-223342209055}</Project>
+      <Name>Joddes.CS.TestFramework</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Source\Joddes.CS.Html5\Joddes.CS.Html5.csproj">
+      <Project>{1109A4DD-41E2-4B1E-8C43-352AC57096AF}</Project>
+      <Name>Joddes.CS.Html5</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Joddes.CS.Html5.Tests\Joddes.CS.Html5.Tests.csproj">
+      <Project>{E8898B70-DE50-4C8C-8217-BDD38C9C61BF}</Project>
+      <Name>Joddes.CS.Html5.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Joddes.CS.Tests\Joddes.CS.Tests.csproj">
+      <Project>{134DEB2F-00FF-451D-905E-6DE290E5F43A}</Project>
+      <Name>Joddes.CS.Tests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Joddes.CS.CoreLibrary.Tests\Joddes.CS.CoreLibrary.Tests.csproj">
+      <Project>{17961E6A-0E9F-4A75-8558-1218931198A1}</Project>
+      <Name>Joddes.CS.CoreLibrary.Tests</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v9.0\WebApplications\Microsoft.WebApplication.targets" />
+  <ProjectExtensions>
+    <MonoDevelop>
+      <Properties VerifyCodeBehindFields="true" VerifyCodeBehindEvents="true">
+        <XspParameters Port="8080" Address="127.0.0.1" SslMode="None" SslProtocol="Default" KeyType="None" CertFile="" KeyFile="" PasswordOptions="None" Password="" Verbose="true" />
+      </Properties>
+    </MonoDevelop>
+  </ProjectExtensions>
+</Project>

@@ -5,11 +5,11 @@ namespace Joddes.CS.Html5
 	[Hidden, Native("NodeList")]
 	public class NodeList
 	{
-        /*public Node this[int index] {
+        public Node this[int index] {
             get {
                 throw new NotSupportedException ();
             }
-        }*/
+        }
         /*
         public Node this[string name] {
             get {
@@ -24,10 +24,10 @@ namespace Joddes.CS.Html5
             }
         }
 
-        [Native("item")]
+        /*[Native("item")]
         public Node Item (int index)
         {
             throw new NotSupportedException();
-        }
+        }*/
 	}
 }

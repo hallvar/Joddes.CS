@@ -86,7 +86,8 @@ namespace System.Net
 
             if (this._headers != null) {
                 for (int i = 0; i < this.Headers.Count; i++) {
-                    xhr.SetRequestHeader (this.Headers.GetKey (i), this.Headers[i]);
+                    var key = this.Headers.GetKey (i);
+                    xhr.SetRequestHeader (key, this.Headers[key]);
                 }
             }
 

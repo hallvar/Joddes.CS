@@ -3,23 +3,25 @@ namespace System.Collections.Generic
 {
     public class Dictionary<TKey, TValue> : IDictionary<TKey, TValue>
     {
-        public Dictionary (int capacity)
+        Joddes.CS.Html5.Object data = new Joddes.CS.Html5.Object();
+
+        public Dictionary ()
         {
         }
 
         public TValue this[TKey key] {
             get {
-                throw new NotSupportedException();
+                return (TValue)data[key+""];
             }
 
             set {
-
+                data[key+""] = value;
             }
         }
 
         public void Add (TKey key, TValue value)
         {
-            throw new System.NotImplementedException ();
+            data[key+""] = value;
         }
 
 
@@ -42,7 +44,14 @@ namespace System.Collections.Generic
 
         public ICollection<TKey> Keys {
             get {
-                throw new System.NotImplementedException ();
+                var keys = Joddes.CS.Html5.Object.keys (data);
+                var lst = new List<TKey> ();
+                foreach (var k in keys)
+                {
+                    lst.Add ((TKey)(object)k);
+                }
+
+                return lst;
             }
         }
 
@@ -95,7 +104,9 @@ namespace System.Collections.Generic
 
         public int Count {
             get {
-                throw new System.NotImplementedException ();
+                var keys = Joddes.CS.Html5.Object.keys (this.data);
+                return keys.Length;
+                //throw new System.NotImplementedException ();
             }
         }
 

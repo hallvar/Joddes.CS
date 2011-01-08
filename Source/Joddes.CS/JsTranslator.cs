@@ -9,7 +9,9 @@ using Mono.Cecil;
 
 namespace Joddes.CS {
     public class JsTranslator {
+        protected string Configuration { get;set; }
         protected string Location { get; set; }
+        protected string CorlibLocation { get; set; }
         protected TextWriter Log { get; set; }
 
         protected string AssemblyLocation { get; set; }
@@ -17,37 +19,51 @@ namespace Joddes.CS {
 
         public bool ForceBuild { get; set; }
 
-        public JsTranslator(string location, TextWriter log) {
+        public JsTranslator (string location, string corlibLocation, TextWriter log)
+        {
             Location = location;
+            CorlibLocation = corlibLocation;
             Log = log;
         }
 
         public void Translate ()
         {
-        	Log.WriteLine ("Reading project file");
-        	ReadProjectFile ();
-        	Log.WriteLine ("Assembly location: {0}", AssemblyLocation);
-        	Log.WriteLine ("{0} source files", SourceFiles.Count);
-        	Log.WriteLine ();
+            Configuration = "Debug";
+            Log.WriteLine ("Reading project file");
+            ReadProjectFile ();
+            Log.WriteLine ("Assembly location: {0}", AssemblyLocation);
+            Log.WriteLine ("{0} source files", SourceFiles.Count);
+            Log.WriteLine ();
 
             if (ForceBuild || !File.Exists (AssemblyLocation)) {
-        		Log.WriteLine ("Building");
-        		BuildProject ();
-        		Log.WriteLine ();
-        	}
+                Log.WriteLine ("Building");
+                BuildProject ();
+                Log.WriteLine ();
+            }
 
             Log.WriteLine ("Loading assembly");
-        	var references = new HashSet<AssemblyDefinition> ();
-        	var assembly = LoadAssembly (AssemblyLocation, references);
-        	if (references.Count > 0)
-        		Log.WriteLine ("{0} referenced assemblies also loaded", references.Count);
-        	Log.WriteLine ();
+            var references = new HashSet<AssemblyDefinition> ();
+            var assembly = LoadAssembly (AssemblyLocation, references);
+            if (references.Count > 0)
+                Log.WriteLine ("{0} referenced assemblies also loaded", references.Count);
+            Log.WriteLine ();
+
+            Log.WriteLine ("Adding assembly for corlib: {0}", CorlibLocation);
+
+            if (CorlibLocation != null) {
+                var corlib = AssemblyDefinition.ReadAssembly (CorlibLocation);
+                Log.WriteLine ("Corlib: {0}", corlib);
+                references.Add (corlib);
+                Log.WriteLine ();
+            }
 
             Log.WriteLine ("Filling type map");
-        	var knownTypes = new Dictionary<string, TypeDefinition> ();
-        	FillTypeMap (assembly, knownTypes);
-        	foreach (var item in references)
-        		FillTypeMap (item, knownTypes);
+            var knownTypes = new Dictionary<string, TypeDefinition> ();
+            FillTypeMap (assembly, knownTypes);
+            foreach (var item in references) {
+                //Console.WriteLine("*****Reference: {0}", item.Name);
+                FillTypeMap (item, knownTypes);
+            }
    
             Log.WriteLine ("Checking type hierarchy");
         	//JsmMetadataChecker.CheckDuplicateNames(knownTypes);
@@ -69,7 +85,7 @@ namespace Joddes.CS {
 			Log.WriteLine ("Emitting Javascript code");
 			
 			foreach(JsTypeInfo t in inspector.CollectedTypes) {
-				if(t.ClassType != ClassType.Interface) {
+				//if(t.ClassType != ClassType.Interface) {
 					var emitter = new JsEmitter (knownTypes, inspector.CollectedTypes);
 					emitter.Emit(t);
 					var dir = Path.Combine("js", t.Namespace.Replace('.', Path.DirectorySeparatorChar));
@@ -79,7 +95,7 @@ namespace Joddes.CS {
 					}
 					var outputLocation = Path.Combine(dir, GenericsHelper.GetScriptName(t)+".js");
 					File.WriteAllText (outputLocation, emitter.Output.ToString());
-				}
+				//}
 			}
             //emitter.Emit(inspector.CollectedTypes);
             Log.WriteLine();
@@ -102,7 +118,7 @@ namespace Joddes.CS {
 
         string GetOutputPath (XmlDocument doc, XmlNamespaceManager manager)
         {
-        	var nodes = doc.SelectNodes ("//my:PropertyGroup[contains(@Condition,'Release')]/my:OutputPath", manager);
+        	var nodes = doc.SelectNodes ("//my:PropertyGroup[contains(@Condition,'"+Configuration+"')]/my:OutputPath", manager);
         	if (nodes.Count != 1)
         		throw new ApplicationException ("Unable to determine output path");
         	var path = nodes[0].InnerText;
@@ -169,8 +185,8 @@ namespace Joddes.CS {
                 return null;
             }
             var ass = AssemblyDefinition.ReadAssembly (location);
-			foreach (AssemblyNameReference r in ass.MainModule.AssemblyReferences) {
-				if (r.Name == "mscorlib") {
+            foreach (AssemblyNameReference r in ass.MainModule.AssemblyReferences) {
+                if (r.Name == "mscorlib" || r.Name == "System.CoreEx" || r.Name == "System.Reactive") {
 					//JsmException.Throw("Assembly references mscorlib: {0}", ass.Name);
 					continue;
 				}
@@ -187,6 +203,7 @@ namespace Joddes.CS {
         static void FillTypeMap (AssemblyDefinition assembly, IDictionary<string, TypeDefinition> types)
         {
             foreach (TypeDefinition type in assembly.MainModule.Types) {
+                //Console.WriteLine ("Type: {0} ({1})", type.FullName, assembly.Name);
                 var key = GenericsHelper.GetTypeMapKey (type);
                 if (types.ContainsKey (key)) {
                     Console.WriteLine ("Key exists in types already: {0} ({1})", type.FullName, assembly.MainModule.Name);

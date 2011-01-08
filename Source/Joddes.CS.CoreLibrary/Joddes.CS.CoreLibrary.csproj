@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="3.5" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -7,9 +7,9 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{194D6565-2378-421C-9FBA-C2DD661BDBE5}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Joddes.CS.CoreLibrary</RootNamespace>
+    <RootNamespace>System</RootNamespace>
     <AssemblyName>Joddes.CS.CoreLibrary</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -20,6 +20,11 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
+    <CustomCommands>
+      <CustomCommands>
+        <Command type="AfterBuild" command="/usr/bin/mono ../../../bin/Joddes.CS.Console.exe ../../Joddes.CS.CoreLibrary.csproj" workingdir="${TargetDir}" />
+      </CustomCommands>
+    </CustomCommands>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>none</DebugType>
@@ -28,22 +33,23 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
+    <CustomCommands>
+      <CustomCommands>
+        <Command type="AfterBuild" command="/usr/bin/mono ../../../bin/Joddes.CS.Console.exe ../../Joddes.CS.CoreLibrary.csproj" workingdir="${TargetDir}" />
+      </CustomCommands>
+    </CustomCommands>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="HiddenAttribute.cs" />
-    <Compile Include="NativeAttribute.cs" />
-    <Compile Include="NativeInlineAttribute.cs" />
+    <Compile Include="System\Collections\Specialized\NameObjectCollectionBase.cs" />
+    <Compile Include="System\Collections\Specialized\NameValueCollection.cs" />
     <Compile Include="System\Collections\Generic\Dictionary.cs" />
     <Compile Include="System\Collections\Generic\ICollection.cs" />
-    <Compile Include="System\Collections\Generic\IDictionary.cs" />
     <Compile Include="System\Collections\Generic\IEnumerable.cs" />
     <Compile Include="System\Collections\Generic\IEnumerator.cs" />
     <Compile Include="System\Collections\Generic\IList.cs" />
     <Compile Include="System\Collections\Generic\KeyValuePair.cs" />
     <Compile Include="System\Collections\Generic\List.cs" />
     <Compile Include="System\Collections\ObjectModel\ReadOnlyCollection.cs" />
-    <Compile Include="System\Collections\Specialized\NameObjectCollectionBase.cs" />
-    <Compile Include="System\Collections\Specialized\NameValueCollection.cs" />
     <Compile Include="System\Collections\ICollection.cs" />
     <Compile Include="System\Collections\IEnumerable.cs" />
     <Compile Include="System\Collections\IEnumerator.cs" />
@@ -63,15 +69,6 @@
     <Compile Include="System\IO\MemoryStream.cs" />
     <Compile Include="System\IO\Stream.cs" />
     <Compile Include="System\IO\StreamReader.cs" />
-    <Compile Include="System\Linq\Expressions\BinaryExpression.cs" />
-    <Compile Include="System\Linq\Expressions\ConstantExpression.cs" />
-    <Compile Include="System\Linq\Expressions\Expression.cs" />
-    <Compile Include="System\Linq\Expressions\ExpressionType.cs" />
-    <Compile Include="System\Linq\Expressions\LamdaExpression.cs" />
-    <Compile Include="System\Linq\Expressions\MemberExpression.cs" />
-    <Compile Include="System\Linq\Expressions\MethodCallExpression.cs" />
-    <Compile Include="System\Linq\Expressions\ParameterExpression.cs" />
-    <Compile Include="System\Linq\Expressions\UnaryExpression.cs" />
     <Compile Include="System\Linq\Enumerable.cs" />
     <Compile Include="System\Linq\IQueryable.cs" />
     <Compile Include="System\Linq\IQueryProvider.cs" />
@@ -94,12 +91,50 @@
     <Compile Include="System\MulticastDelegate.cs" />
     <Compile Include="System\Func.cs" />
     <Compile Include="System\AsyncCallback.cs" />
+    <Compile Include="System\ValueType.cs" />
+    <Compile Include="System\Void.cs" />
+    <Compile Include="System\Int64.cs" />
+    <Compile Include="System\Char.cs" />
+    <Compile Include="System\Decimal.cs" />
+    <Compile Include="System\Enum.cs" />
+    <Compile Include="System\IDisposable.cs" />
+    <Compile Include="System\Int16.cs" />
+    <Compile Include="System\IntPtr.cs" />
+    <Compile Include="System\ParamArrayAttribute.cs" />
+    <Compile Include="System\RuntimeFieldHandle.cs" />
+    <Compile Include="System\RuntimeTypeHandle.cs" />
+    <Compile Include="System\SByte.cs" />
+    <Compile Include="System\Single.cs" />
+    <Compile Include="System\UInt16.cs" />
+    <Compile Include="System\UInt32.cs" />
+    <Compile Include="System\UInt64.cs" />
+    <Compile Include="System\UIntPtr.cs" />
+    <Compile Include="System\Runtime\InteropServices\OutAttribute.cs" />
+    <Compile Include="System\Threading\AutoResetEvent.cs" />
+    <Compile Include="System\Collections\Generic\IDictionary.cs" />
+    <Compile Include="System\Linq\Expressions\BinaryExpression.cs" />
+    <Compile Include="System\Linq\Expressions\ConstantExpression.cs" />
+    <Compile Include="System\Linq\Expressions\Expression.cs" />
+    <Compile Include="System\Linq\Expressions\ExpressionType.cs" />
+    <Compile Include="System\Linq\Expressions\LamdaExpression.cs" />
+    <Compile Include="System\Linq\Expressions\MemberExpression.cs" />
+    <Compile Include="System\Linq\Expressions\MethodCallExpression.cs" />
+    <Compile Include="System\Linq\Expressions\ParameterExpression.cs" />
+    <Compile Include="System\Linq\Expressions\UnaryExpression.cs" />
+    <Compile Include="System\Attribute.cs" />
+    <Compile Include="System\Console.cs" />
+    <Compile Include="System\DateTime.cs" />
+    <Compile Include="System\TimeSpan.cs" />
+    <Compile Include="System\ObsoleteAttribute.cs" />
+    <Compile Include="System\IObservable.cs" />
+    <Compile Include="System\IObserver.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <None Include="System\Linq\.DS_Store" />
     <None Include="Stubs.cs" />
-    <None Include="System\Attribute.cs" />
+    <None Include="HiddenAttribute.cs" />
+    <None Include="NativeAttribute.cs" />
+    <None Include="NativeInlineAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Joddes.CS.Html5\Joddes.CS.Html5.csproj">

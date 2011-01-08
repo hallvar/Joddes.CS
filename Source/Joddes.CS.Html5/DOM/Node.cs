@@ -26,6 +26,13 @@ namespace Joddes.CS.Html5
             }
         }
 
+        [Native("textContent")]
+        public string TextContent {
+            get {
+                throw new NotSupportedException();
+            }
+        }
+
         [Native("parentNode")]
         public Node ParentNode {
             get {

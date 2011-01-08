@@ -145,6 +145,18 @@ namespace Joddes.CS
             defaultValues.Add ("Double", 0);
         }
 
+        public override object VisitEventDeclaration (EventDeclaration node, object data)
+        {
+            bool isStatic = CurrentType.ClassType == ClassType.Enum || HasModifier (node.Modifier, Modifiers.Static) || HasModifier (node.Modifier, Modifiers.Const);
+            if (isStatic) {
+                CurrentType.StaticEvents.Add (node.Name, node);
+            } else {
+                CurrentType.InstanceEvents.Add (node.Name, node);
+            }
+
+            return null;
+        }
+
         public override object VisitFieldDeclaration (FieldDeclaration node, object data)
         {
             bool isStatic = CurrentType.ClassType == ClassType.Enum || HasModifier (node.Modifier, Modifiers.Static) || HasModifier (node.Modifier, Modifiers.Const);
@@ -279,6 +291,16 @@ namespace Joddes.CS
             return null;
         }
 
+
+        public override object VisitOperatorDeclaration (OperatorDeclaration node, object data)
+        {
+            var key = GenericsHelper.GetScriptName (node);
+
+            CurrentType.StaticMethods.Add (key, node);
+
+            return null;
+        }
+
         public static bool HasModifier (Modifiers haystack, Modifiers needle)
         {
             return (haystack & needle) == needle;
@@ -286,11 +308,15 @@ namespace Joddes.CS
 
         public override object VisitDelegateDeclaration (DelegateDeclaration node, object data)
         {
+            if (CurrentType == null)
+            {
+                return null;
+            }
             bool isStatic = HasModifier (node.Modifier, Modifiers.Static);
             IDictionary<string, DelegateDeclaration> dict = isStatic ? CurrentType.StaticDelegates : CurrentType.InstanceDelegates;
             
             var key = GenericsHelper.GetScriptName (node);
-            
+
             if (dict.ContainsKey (key)) {
                 Console.WriteLine ("Overloads are not allowed");
                 //throw CreateException (node, "Overloads are not allowed");

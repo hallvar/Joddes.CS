@@ -3,7 +3,7 @@ using System;
 namespace System
 {
 	[Hidden]
-	public class String
+	public class String : Object
 	{
 		public String ()
 		{
@@ -21,5 +21,29 @@ namespace System
 		{
 			throw new NotImplementedException ();
 		}
-	}
+
+        [Native("indexOf")]
+        public int IndexOf (string str)
+        {
+            throw new NotImplementedException ();
+        }
+
+        [Native("lastIndexOf")]
+        public int LastIndexOf (string str)
+        {
+            throw new NotImplementedException ();
+        }
+
+        [Native("substr")]
+        public string Substring (int start, int length)
+        {
+            throw new NotImplementedException();
+        }
+
+        [Native("replaceAll")]
+        public string Replace (string subStr, string newSubStr)
+        {
+            throw new NotImplementedException ();
+        }
+    }
 }

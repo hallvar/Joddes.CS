@@ -1,7 +1,15 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{A6D8A88E-5578-4CA2-B6C3-D6464D23728B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Joddes.CS.Tests.Web", "..\Tests\Joddes.CS.TestRunner\Joddes.CS.Tests.Web.csproj", "{31BD5120-238B-418E-88C5-58B858ADE1B4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Joddes.CS.Html5.Tests", "..\Tests\Joddes.CS.Html5.Tests\Joddes.CS.Html5.Tests.csproj", "{E8898B70-DE50-4C8C-8217-BDD38C9C61BF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Joddes.CS.Tests", "..\Tests\Joddes.CS.Tests\Joddes.CS.Tests.csproj", "{134DEB2F-00FF-451D-905E-6DE290E5F43A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Joddes.CS.CoreLibrary.Tests", "..\Tests\Joddes.CS.CoreLibrary.Tests\Joddes.CS.CoreLibrary.Tests.csproj", "{17961E6A-0E9F-4A75-8558-1218931198A1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "External Projects", "External Projects", "{E194A444-2D98-4BF6-ADBA-5EB141281DFC}"
 EndProject
@@ -17,23 +25,59 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Joddes.CS.Console", "Joddes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Joddes.CS.CoreLibrary", "Joddes.CS.CoreLibrary\Joddes.CS.CoreLibrary.csproj", "{194D6565-2378-421C-9FBA-C2DD661BDBE5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Joddes.CS.TestFramework", "Joddes.CS.TestFramework\Joddes.CS.TestFramework.csproj", "{5B8B0D9A-0374-480A-8D11-223342209055}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Joddes.CS.MonoDevelop", "Joddes.CS.MonoDevelopAddIn\Joddes.CS.MonoDevelop.csproj", "{4CC15613-DEE1-4BCA-8A3E-E048A1C49713}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Joddes.CS.CoreLibrary.Extensions", "Joddes.CS.CoreLibrary.Extensions\Joddes.CS.CoreLibrary.Extensions.csproj", "{0B0A7132-1D64-459F-85F8-38339EDFC24E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Joddes.CS.System.Reactive", "Joddes.CS.System.Reactive\Joddes.CS.System.Reactive.csproj", "{10E8B7B0-25A2-4007-AA76-9C675B2471E7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0B0A7132-1D64-459F-85F8-38339EDFC24E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B0A7132-1D64-459F-85F8-38339EDFC24E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B0A7132-1D64-459F-85F8-38339EDFC24E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B0A7132-1D64-459F-85F8-38339EDFC24E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{10E8B7B0-25A2-4007-AA76-9C675B2471E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{10E8B7B0-25A2-4007-AA76-9C675B2471E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{10E8B7B0-25A2-4007-AA76-9C675B2471E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{10E8B7B0-25A2-4007-AA76-9C675B2471E7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1109A4DD-41E2-4B1E-8C43-352AC57096AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1109A4DD-41E2-4B1E-8C43-352AC57096AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1109A4DD-41E2-4B1E-8C43-352AC57096AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1109A4DD-41E2-4B1E-8C43-352AC57096AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{134DEB2F-00FF-451D-905E-6DE290E5F43A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{134DEB2F-00FF-451D-905E-6DE290E5F43A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{134DEB2F-00FF-451D-905E-6DE290E5F43A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{134DEB2F-00FF-451D-905E-6DE290E5F43A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17961E6A-0E9F-4A75-8558-1218931198A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17961E6A-0E9F-4A75-8558-1218931198A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17961E6A-0E9F-4A75-8558-1218931198A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17961E6A-0E9F-4A75-8558-1218931198A1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{194D6565-2378-421C-9FBA-C2DD661BDBE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{194D6565-2378-421C-9FBA-C2DD661BDBE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{194D6565-2378-421C-9FBA-C2DD661BDBE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{194D6565-2378-421C-9FBA-C2DD661BDBE5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31BD5120-238B-418E-88C5-58B858ADE1B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31BD5120-238B-418E-88C5-58B858ADE1B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31BD5120-238B-418E-88C5-58B858ADE1B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31BD5120-238B-418E-88C5-58B858ADE1B4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3A9AE6AA-BC07-4A2F-972C-581E3AE2F195}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3A9AE6AA-BC07-4A2F-972C-581E3AE2F195}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3A9AE6AA-BC07-4A2F-972C-581E3AE2F195}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3A9AE6AA-BC07-4A2F-972C-581E3AE2F195}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4CC15613-DEE1-4BCA-8A3E-E048A1C49713}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4CC15613-DEE1-4BCA-8A3E-E048A1C49713}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4CC15613-DEE1-4BCA-8A3E-E048A1C49713}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B8B0D9A-0374-480A-8D11-223342209055}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B8B0D9A-0374-480A-8D11-223342209055}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B8B0D9A-0374-480A-8D11-223342209055}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B8B0D9A-0374-480A-8D11-223342209055}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A4C32C02-780D-4338-AD3F-D1BE42ACA64B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A4C32C02-780D-4338-AD3F-D1BE42ACA64B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A4C32C02-780D-4338-AD3F-D1BE42ACA64B}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -42,17 +86,25 @@ Global
 		{D68133BD-1E63-496E-9EDE-4FBDBF77B486}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D68133BD-1E63-496E-9EDE-4FBDBF77B486}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D68133BD-1E63-496E-9EDE-4FBDBF77B486}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E8898B70-DE50-4C8C-8217-BDD38C9C61BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8898B70-DE50-4C8C-8217-BDD38C9C61BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E8898B70-DE50-4C8C-8217-BDD38C9C61BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E8898B70-DE50-4C8C-8217-BDD38C9C61BF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{ED8A7E19-BBE7-4EE9-941A-8A70D50F32B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{ED8A7E19-BBE7-4EE9-941A-8A70D50F32B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ED8A7E19-BBE7-4EE9-941A-8A70D50F32B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ED8A7E19-BBE7-4EE9-941A-8A70D50F32B6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{31BD5120-238B-418E-88C5-58B858ADE1B4} = {A6D8A88E-5578-4CA2-B6C3-D6464D23728B}
+		{E8898B70-DE50-4C8C-8217-BDD38C9C61BF} = {A6D8A88E-5578-4CA2-B6C3-D6464D23728B}
+		{134DEB2F-00FF-451D-905E-6DE290E5F43A} = {A6D8A88E-5578-4CA2-B6C3-D6464D23728B}
+		{17961E6A-0E9F-4A75-8558-1218931198A1} = {A6D8A88E-5578-4CA2-B6C3-D6464D23728B}
 		{D68133BD-1E63-496E-9EDE-4FBDBF77B486} = {E194A444-2D98-4BF6-ADBA-5EB141281DFC}
 		{3A9AE6AA-BC07-4A2F-972C-581E3AE2F195} = {E194A444-2D98-4BF6-ADBA-5EB141281DFC}
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
-		StartupItem = ..\SharedLibs\Mono.Cecil\Mono.Cecil.csproj
+		StartupItem = ..\Tests\Joddes.CS.TestRunner\Joddes.CS.Tests.Web.csproj
 		Policies = $0
 		$0.DotNetNamingPolicy = $1
 		$1.DirectoryNamespaceAssociation = None

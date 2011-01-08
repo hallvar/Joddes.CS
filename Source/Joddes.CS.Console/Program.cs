@@ -6,8 +6,15 @@ using System.IO;
 
 namespace Joddes.CS.Console {
     class Program {        
-        static void Main(string[] args) {
-            PrintInfo();
+        static void Main (string[] args)
+        {
+            PrintInfo ();
+
+            if (args.Length == 0)
+            {
+                PrintUsage ();
+                return;
+            }
 
             var options = new List<string>(2);
             var paths = new List<string>(2);
@@ -18,9 +25,10 @@ namespace Joddes.CS.Console {
                     paths.Add(arg);
             }
             var projectLocation = paths[0];
+            var corlibLocation = paths.Count > 1 ? paths[1] : null;
 
             try {
-                var p = new JsTranslator(projectLocation, System.Console.Out);
+                var p = new JsTranslator(projectLocation, corlibLocation, System.Console.Out);
                 p.ForceBuild = options.Contains("build");
 				p.Translate();
             } catch(Exception e) {

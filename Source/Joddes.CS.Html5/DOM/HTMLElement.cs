@@ -3,14 +3,21 @@ namespace Joddes.CS.Html5 {
 	public abstract class HTMLElement
 	{
 		public NodeList getElementsByClassName (string classNames)
-	
 		{
-			return null;
+            throw new System.NotSupportedException ();
 		}
+
+        public NodeList getElementsByTagName (string classNames)
+        {
+            throw new System.NotSupportedException();
+        }
 		
 		public string innerHTML {
 			get; set;
 		}
+
+        public string innerText { get; set;
+        }
 		
 		public string outerHTML {
 			get; set;
@@ -86,5 +93,10 @@ namespace Joddes.CS.Html5 {
 		public void AppendChild (HTMLElement element)
 		{
 		}
+
+        [Native("removeChild")]
+        public void RemoveChild (HTMLElement element)
+        {
+        }
 	}
 }

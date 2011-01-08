@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 namespace System.Collections.Specialized
 {
     public abstract class NameObjectCollectionBase : IEnumerable, ICollection
     {
+
         public int Count {
             get; private set;
         }
@@ -24,14 +26,16 @@ namespace System.Collections.Specialized
         
         public bool IsSynchronized {
             get {
-                throw new System.NotImplementedException();
+                return false;
+                //throw new System.NotImplementedException();
             }
         }
         
         
         public object SyncRoot {
             get {
-                throw new System.NotImplementedException();
+                return false;
+                //throw new System.NotImplementedException();
             }
         }
     }

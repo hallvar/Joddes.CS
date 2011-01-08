@@ -1,7 +1,9 @@
+using DOMString=System.String;
+
 namespace Joddes.CS.Html5
 {
 	[Hidden, Native("window")]
-	public class Window : IWindow
+	public class Window : IWindow, IWebDatabase
 	{
 		[Native("self")]
 		public static Window Self { get; set; }
@@ -61,5 +63,11 @@ namespace Joddes.CS.Html5
 		
 		[Native("offline")]
 		public event DOMEventHander Offline;
+
+        [Native("openDatabase")]
+        public Database openDatabase (DOMString name, DOMString version, DOMString displayName, ulong estimatedSize)
+        {
+            throw new System.NotSupportedException();
+        }
 	}
 }

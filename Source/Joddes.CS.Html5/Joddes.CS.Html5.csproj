@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="3.5" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Joddes.CS.Html5</RootNamespace>
     <AssemblyName>Joddes.CS.Html5</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -41,7 +41,6 @@
     <Compile Include="Date.cs" />
     <Compile Include="XmlHttpRequest.cs" />
     <Compile Include="XMLHttpRequestProgressEvent.cs" />
-    <Compile Include="Object.cs" />
     <Compile Include="DOM\DOMParser.cs" />
     <Compile Include="DOM\DOMStringMap.cs" />
     <Compile Include="DOM\DOMTokenList.cs" />
@@ -59,6 +58,14 @@
     <Compile Include="HiddenAttribute.cs" />
     <Compile Include="NativeAttribute.cs" />
     <Compile Include="NativeInlineAttribute.cs" />
+    <Compile Include="Function.cs" />
+    <Compile Include="Object.cs" />
+    <Compile Include="WebGl\WebGLBuffer.cs" />
+    <Compile Include="WebGl\WebGLObject.cs" />
+    <Compile Include="WebGl\ArrayBuffer.cs" />
+    <Compile Include="WebGl\ArrayBufferView.cs" />
+    <Compile Include="WebDatabase\IWebDatabase.cs" />
+    <Compile Include="WebDatabase\Database.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="WebGl\" />
@@ -66,6 +73,7 @@
     <Folder Include="Canvas\" />
     <Folder Include="DOM\" />
     <Folder Include="DOM\" />
+    <Folder Include="WebDatabase\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

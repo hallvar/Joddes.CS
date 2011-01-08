@@ -4,7 +4,7 @@ namespace System.Collections.Specialized
 {
     public class NameValueCollection : NameObjectCollectionBase
     {
-        Dictionary<string, string> collection = new Dictionary<string, string>(8);
+        protected Dictionary<string, string> collection = new Dictionary<string, string> ();
 
         public NameValueCollection ()
         {
@@ -12,18 +12,18 @@ namespace System.Collections.Specialized
 
         public string this[string name] {
             get {
-                return collection[name];
+                return this.collection[name];
             }
 
             set {
-                collection[name] = value;
+                this.collection[name] = value;
             }
         }
-
+        /*
         public string this[int index] {
             get {
                 int i = 0;
-                foreach (var v in collection.Values)
+                foreach (var v in this.collection.Values)
                 {
                     if (i++ == index) {
                         return v;
@@ -34,21 +34,18 @@ namespace System.Collections.Specialized
 
             set {
                 var k = this.GetKey (index);
-                collection[k] = value;
+                this.collection[k] = value;
             }
-        }
+        }*/
 
         public new int Count {
-            get {
-                return collection.Count;
-            }
+            get { return this.collection.Count; }
         }
-
 
         public string GetKey (int index)
         {
             int i = 0;
-            foreach (var k in collection.Keys) {
+            foreach (var k in this.collection.Keys) {
                 if (i++ == index) {
                     return k;
                 }

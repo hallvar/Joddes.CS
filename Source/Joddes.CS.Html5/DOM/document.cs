@@ -3,13 +3,13 @@ namespace Joddes.CS.Html5 {
 	public class Document
 	{
 		[Native("getElementById")]
-		public object GetElementById (string id)
+		public HTMLElement GetElementById (string id)
 		{
 			return null;
 		}
 		
 		[Native("getElementsByTagName")]
-		public object[] GetElementsByTagName (string tagName)
+		public HTMLElement[] GetElementsByTagName (string tagName)
 		{
 			return null;
 		}

@@ -1,8 +1,8 @@
 namespace System.Reflection
 {
-	public class MethodInfo
+	public class MethodInfo : MemberInfo
 	{
-		public string Name { get; private set; }
+		public string Name { get; set; }
 
 		public MethodInfo GetBaseDefinition ()
 		{
@@ -23,5 +23,10 @@ namespace System.Reflection
 		{
 			return null;
 		}
+
+        public object Invoke (object obj, object[] args)
+        {
+            return ((Joddes.CS.Html5.Function)((Joddes.CS.Html5.Object)obj)[this.Name]).apply(obj, args);
+        }
 	}
 }

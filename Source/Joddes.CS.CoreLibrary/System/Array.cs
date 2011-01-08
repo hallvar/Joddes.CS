@@ -6,15 +6,19 @@ namespace System
 		private Array ()
 		{
 		}
-		
-		public int len;
-		
+
 		[Native("length")]
 		public int Length {
 			get {
 				throw new System.NotSupportedException ();
 			}
 		}
+
+        public int length {
+            get {
+                throw new System.NotSupportedException();
+            }
+        }
 	}
 	
 	[Hidden]

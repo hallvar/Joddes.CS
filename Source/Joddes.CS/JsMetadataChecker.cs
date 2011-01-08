@@ -25,8 +25,8 @@ namespace Joddes.CS {
         		Console.WriteLine ("Nested types are not supported: {0}", type);
 			}
             
-			if(type.HasEvents)
-                throw new ApplicationException(string.Format("Events are not supported: {0}", type));
+			//if(type.HasEvents)
+            //    throw new ApplicationException(string.Format("Events are not supported: {0}", type));
             //if(type.HasProperties)
             //    JsmException.Throw("Properties are not supported: {0}, you may use methods instead", type);
             if(type.IsValueType)
@@ -78,7 +78,7 @@ namespace Joddes.CS {
 
         static void CheckConstructors (TypeDefinition type)
         {
-            bool found = false;
+            /*bool found = false;
             foreach (MethodDefinition ctor in type.Methods) {
                 if (!ctor.IsConstructor)
                 {
@@ -90,7 +90,7 @@ namespace Joddes.CS {
                 if(found)
                     throw new ApplicationException(string.Format("Type {0} must have the only instance constructor", type));
                 found = true;
-            }
+            }*/
         }
 
         static void CheckFields(TypeDefinition type) {

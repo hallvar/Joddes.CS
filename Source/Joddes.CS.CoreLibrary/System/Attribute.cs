@@ -1,5 +1,4 @@
 namespace System {
-
     [Hidden]
     public class Attribute {
         internal Attribute() {

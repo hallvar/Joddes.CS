@@ -1,0 +1,35 @@
+<Addin namespace   = "MonoDevelop"
+       id          = "Joddes.CS"
+       name        = "Joddes CS"
+       author      = "Hallvar Helleseth"
+       copyright   = "MIT/X11"
+       url         = "http://github.com/hallvar"
+       description = "Provides Joddes CS integration with MonoDevelop"
+       category    = "Platform Support"
+       version     = "1.0">
+
+    <Dependencies>
+        <Addin id="Ide" version="2.4"/>
+    </Dependencies>
+
+    <Extension path = "/MonoDevelop/Ide/Commands/Edit">
+        <Command id = "MonoDevelop.Joddes.CS.DateInserter.DateInserterCommands.InsertDate"
+                 _label = "Insert Date"
+                 _description = "Insert the current date" />
+    </Extension>
+
+    <Extension path = "/MonoDevelop/Ide/MainMenu/Edit">
+        <CommandItem id="MonoDevelop.Joddes.CS.DateInserter.DateInserterCommands.InsertDate" />
+    </Extension>
+    
+    <Extension path = "/MonoDevelop/Ide/Commands/Edit">
+        <Command id = "MonoDevelop.Joddes.CS.DateInserter.DateInserterCommands.InsertDate"
+                 _label = "Insert Date"                 
+                 _description = "Insert the current date" 
+                 defaultHandler = "MonoDevelop.Joddes.CS.DateInserter.InsertDateHandler"/>
+    </Extension>
+    
+    <Extension path="/MonoDevelop/ProjectModel/ProjectServiceExtensions">  
+    	<Class class="MonoDevelop.Joddes.CS.JsTranslator"/>  
+	</Extension>
+</Addin>

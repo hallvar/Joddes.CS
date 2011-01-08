@@ -60,15 +60,16 @@ namespace Joddes.CS {
 
         public static string GetScriptFullName (CecilTypeReference type)
         {
-        	if (type == null) {
-        		Console.WriteLine ("CecilTypeReference is null");
-        		return "Object";
-			}
-            StringBuilder builder = new StringBuilder(type.Namespace);
-            if(builder.Length > 0)
-                builder.Append('.');
-            builder.Append(ReplaceSpecialChars(type.Name));
-            return builder.ToString();
+            if (type == null) {
+                Console.WriteLine ("CecilTypeReference is null");
+                return "Object";
+            }
+            StringBuilder builder = new StringBuilder (type.Namespace);
+            if (builder.Length > 0)
+                builder.Append ('.');
+
+            builder.Append (ReplaceSpecialChars (type.Name.Replace ("[", "").Replace ("]", "")));
+            return builder.ToString ();
         }
 
         public static string GetTypeMapKey(TypeDefinition type) {
@@ -76,7 +77,7 @@ namespace Joddes.CS {
         }
 
         public static string GetTypeMapKey(JsTypeInfo info) {
-            return info.FullName;
+            return GenericsHelper.GetScriptFullName(info.FullName);
         }
 
         public static string GetTypeMapKey (CecilTypeReference type)
@@ -86,7 +87,11 @@ namespace Joddes.CS {
 			
         static string GetScriptName (string baseName, int paramCount)
         {
-        	//return GetPostfixedName(baseName, paramCount, "$");
+            //return GetPostfixedName(baseName, paramCount, "$");
+            if (baseName == "ToString")
+            {
+                return "toString";
+            }
         	return baseName;
         }
 		
@@ -94,7 +99,16 @@ namespace Joddes.CS {
         static string ReplaceSpecialChars (string name)
         {
             // TODO: Remove all signs of generics name
-            return name.Replace ("`1<T>", "").Replace ("`1", "").Replace("`2", "").Replace('/', '.');
+            name = name.Replace ("`1<T>", "").Replace ("`1", "").Replace ("`2", "").Replace ('/', '.');
+
+            var index = name.IndexOf ("<");
+            var stopindex = name.IndexOf (">");
+            if (index > 0 && stopindex > index)
+            {
+                name = name.Substring (0, index);
+            }
+
+            return name;
         }
 
         private static string GetPostfixedName(string baseName, int paramCount, string separator) {

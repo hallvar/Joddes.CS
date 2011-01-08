@@ -1,10 +1,5 @@
 namespace System
 {
     [Hidden]
-    public class AsyncCallback
-    {
-        public AsyncCallback ()
-        {
-        }
-    }
+    public delegate void AsyncCallback(IAsyncResult result);
 }

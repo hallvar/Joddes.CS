@@ -1,3 +1,5 @@
+using Joddes.CS.Html5;
+
 namespace System.IO
 {
     public class DirectoryInfo
@@ -9,14 +11,28 @@ namespace System.IO
             this.path = path;
         }
 
-        public DirectoryInfo[] GetDirectories ()
-        {
-            return null;
+        public string FullName {
+            get {
+                return this.path;
+            }
         }
 
+        public string Name {
+            get {
+                return this.path.Substring(this.path.LastIndexOf("/")+1);
+            }
+        }
+
+        [Obsolete("Use BeginGetDirectories in CoreLibrary.Extensions instead.", true)]
+        public DirectoryInfo[] GetDirectories ()
+        {
+            throw new NotSupportedException();
+        }
+
+        [Obsolete("Use BeginGetFiles in CoreLibrary.Extensions instead.", true)]
         public FileInfo[] GetFiles ()
         {
-            return null;
+            throw new NotSupportedException();
         }
     }
 }

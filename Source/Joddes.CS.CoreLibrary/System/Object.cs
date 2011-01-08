@@ -1,3 +1,7 @@
+using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
+using System.Runtime.ConstrainedExecution;
+
 namespace System
 {
 	[Hidden]
@@ -6,6 +10,30 @@ namespace System
 		public Object ()
 		{
 		}
+
+        [Native("toString")]
+        public virtual string ToString ()
+        {
+            throw new NotSupportedException ();
+        }
+
+        public static bool Equals (object objA, object objB)
+        {
+            return false;
+        }
+
+        public virtual int GetHashCode ()
+        {
+            return 0;
+        }
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern Type GetType ();
+
+        public static bool ReferenceEquals (object objA, object objB)
+        {
+            return (objA == objB);
+        }
 		/*
 		[Native("keys")]
 		public static string[] keys (object obj)

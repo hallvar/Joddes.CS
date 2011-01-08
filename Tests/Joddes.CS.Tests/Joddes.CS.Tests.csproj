@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{134DEB2F-00FF-451D-905E-6DE290E5F43A}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Joddes.CS.Tests</RootNamespace>
+    <AssemblyName>Joddes.CS.Tests</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <CustomCommands>
+      <CustomCommands>
+        <Command type="AfterBuild" command="mono ../../../../Source/bin/Joddes.CS.Console.exe ../../Joddes.CS.Tests.csproj ../../../../Source/Joddes.CS.CoreLibrary/bin/Debug/Joddes.CS.CoreLibrary.dll" workingdir="${TargetDir}" />
+      </CustomCommands>
+    </CustomCommands>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CustomCommands>
+      <CustomCommands>
+        <Command type="AfterBuild" command="mono ../../../../Source/bin/Joddes.CS.Console.exe ../../Joddes.CS.Tests.csproj ../../../../Source/Joddes.CS.CoreLibrary/bin/Release/Joddes.CS.CoreLibrary.dll" workingdir="${TargetDir}" />
+      </CustomCommands>
+    </CustomCommands>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="TranslatorTest.cs" />
+    <Compile Include="LanguageTests\EmptyClass.cs" />
+    <Compile Include="LanguageTest.cs" />
+    <Compile Include="LanguageTests\EmptyClassWithDefaultConstructor.cs" />
+    <Compile Include="LanguageTests\ClassWithSinglePropertyWithDefaultGetAndSet.cs" />
+    <Compile Include="LanguageTests\ClassWithSingleMethod.cs" />
+    <Compile Include="LanguageTests\ClassWithSinglePropertyWithBasicGetAndSet.cs" />
+    <Compile Include="LanguageTests\ClassWithMethodsPropertiesFieldsEventsAndDelegates.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Source\Joddes.CS.TestFramework\Joddes.CS.TestFramework.csproj">
+      <Project>{5B8B0D9A-0374-480A-8D11-223342209055}</Project>
+      <Name>Joddes.CS.TestFramework</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="LanguageTests\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+</Project>

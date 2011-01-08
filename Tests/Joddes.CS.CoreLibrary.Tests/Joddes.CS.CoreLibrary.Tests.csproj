@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{17961E6A-0E9F-4A75-8558-1218931198A1}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Joddes.CS.CoreLibrary.Tests</RootNamespace>
+    <AssemblyName>Joddes.CS.CoreLibrary.Tests</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <CustomCommands>
+      <CustomCommands>
+        <Command type="AfterBuild" command="/usr/bin/mono ../../../../Source/bin/Joddes.CS.Console.exe ../../Joddes.CS.CoreLibrary.Tests.csproj ../../../../Source/Joddes.CS.CoreLibrary/bin/Debug/Joddes.CS.CoreLibrary.dll" workingdir="${TargetDir}" />
+      </CustomCommands>
+    </CustomCommands>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CustomCommands>
+      <CustomCommands>
+        <Command type="AfterBuild" command="mono ../../../../Source/bin/Joddes.CS.Console.exe ../../Joddes.CS.CoreLibrary.Tests.csproj ../../../../Source/Joddes.CS.CoreLibrary/bin/Release/Joddes.CS.CoreLibrary.dll" workingdir="${TargetDir}" />
+      </CustomCommands>
+    </CustomCommands>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="System\" />
+    <Folder Include="System\Collections\" />
+    <Folder Include="System\Collections\Generic\" />
+    <Folder Include="System\Net\" />
+    <Folder Include="System\IO\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="System\Collections\Generic\ListTest.cs" />
+    <Compile Include="System\Net\HttpWebRequestTest.cs" />
+    <Compile Include="System\IO\DirectoryInfoTest.cs" />
+    <Compile Include="NetAsyncResult.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Source\Joddes.CS.TestFramework\Joddes.CS.TestFramework.csproj">
+      <Project>{5B8B0D9A-0374-480A-8D11-223342209055}</Project>
+      <Name>Joddes.CS.TestFramework</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Source\Joddes.CS.CoreLibrary.Extensions\Joddes.CS.CoreLibrary.Extensions.csproj">
+      <Project>{0B0A7132-1D64-459F-85F8-38339EDFC24E}</Project>
+      <Name>Joddes.CS.CoreLibrary.Extensions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Source\Joddes.CS.System.Reactive\Joddes.CS.System.Reactive.csproj">
+      <Project>{10E8B7B0-25A2-4007-AA76-9C675B2471E7}</Project>
+      <Name>Joddes.CS.System.Reactive</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+</Project>

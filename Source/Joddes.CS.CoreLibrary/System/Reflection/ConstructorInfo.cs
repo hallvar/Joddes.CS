@@ -4,7 +4,7 @@ namespace System.Reflection
 {
 	public class ConstructorInfo
 	{
-		object constructor;
+		public object constructor;
 		public ConstructorInfo (object constructor)
 		{
 			this.constructor = constructor;

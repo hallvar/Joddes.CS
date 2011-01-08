@@ -24,7 +24,8 @@ namespace Joddes.CS
         public Dictionary<string, DelegateDeclaration> StaticDelegates { get; protected set; }
         public Dictionary<string, DelegateDeclaration> InstanceDelegates { get; protected set; }
         public Dictionary<TypeReference, IndexerDeclaration> InstanceIndexers { get; protected set; }
-
+        public Dictionary<string, EventDeclaration> StaticEvents { get; protected set; }
+        public Dictionary<string, EventDeclaration> InstanceEvents { get; protected set; }
 
         public JsTypeInfo ()
         {
@@ -36,8 +37,10 @@ namespace Joddes.CS
             InstanceMethods = new Dictionary<string, MethodDeclaration> ();
             StaticDelegates = new Dictionary<string, DelegateDeclaration> ();
             InstanceDelegates = new Dictionary<string, DelegateDeclaration> ();
+            StaticIndexers = new Dictionary<TypeReference, IndexerDeclaration> ();
             InstanceIndexers = new Dictionary<TypeReference, IndexerDeclaration> ();
-            StaticIndexers = new Dictionary<TypeReference, IndexerDeclaration>();
+            StaticEvents = new Dictionary<string, EventDeclaration> ();
+            InstanceEvents = new Dictionary<string, EventDeclaration> ();
         }
 
         public string FullName {

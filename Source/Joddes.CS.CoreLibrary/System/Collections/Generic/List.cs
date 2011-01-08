@@ -4,6 +4,8 @@ namespace System.Collections.Generic
 {
 	public class List<T> : IEnumerable<T>, IList<T>, ICollection<T>, ICollection
 	{
+        private object[] data = new object[]{};
+
 		public List ()
 		{
 		}
@@ -23,16 +25,16 @@ namespace System.Collections.Generic
 		
 		public T this[int index] {
 			get {
-				throw new Exception();
+				return (T)data[index];
 			}
 			set {
-				
+				data[index] = value;
 			}
 		}
 		
 		public void Add (T item)
 		{
-			this[Count++] = item;
+			this[Count] = item;
 		}
 		
 		public void Clear ()
@@ -55,8 +57,9 @@ namespace System.Collections.Generic
 		}
 		
 		public int Count {
-			get;
-			set;
+		    get {
+                return data.Length;
+            }
 		}
 		
 		public bool IsReadOnly {
@@ -90,6 +93,11 @@ namespace System.Collections.Generic
 		{
 			return null;
 		}
+
+        public T[] ToArray ()
+        {
+            return (T[])(object)data;
+        }
 	}
 	
 	public class ListEnumerator<T> : IEnumerator<T> {
